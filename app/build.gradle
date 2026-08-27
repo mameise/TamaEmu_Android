@@ -1,0 +1,107 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// Kennung des Builds. Sie geht in die Zustandsdatei ein: aendert sich der
+// Aufbau der Emu-Struktur, passt ein alter Zustand nicht mehr und wird
+// verworfen. Bei jeder Veroeffentlichung mit hochzaehlen.
+def BUILD_TAG = 'v37'
+
+android {
+    namespace 'com.bernd.tamaemu'
+    compileSdk 34
+    ndkVersion '26.1.10909125'
+
+    defaultConfig {
+        applicationId 'com.bernd.tamaemu'
+        minSdk 26
+        targetSdk 33
+        versionCode 37
+        versionName "1.0"
+        buildConfigField 'String', 'BUILD_TAG', "\"${BUILD_TAG}\""
+        /*
+         * Alle drei gaengigen Bauarten. arm64 ist der Normalfall; armeabi-v7a
+         * brauchen aeltere 32-Bit-Handys (bis etwa 2018), x86_64 der Emulator
+         * von Android Studio. Ohne armeabi-v7a laesst sich die App auf einem
+         * 32-Bit-Geraet gar nicht erst installieren - das ist die haeufigste
+         * Ursache fuer "nicht kompatibel".
+         */
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64' }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/CMakeLists.txt'
+            version '3.22.1'
+        }
+    }
+
+    /*
+     * Signieren ohne Schluessel im Quelltext.
+     *
+     * Gesucht wird ein Schluesselspeicher in dieser Reihenfolge:
+     *   1. Umgebungsvariablen (so macht es der Bau bei GitHub Actions),
+     *   2. Eigenschaften in gradle.properties (fuer den eigenen Rechner),
+     *   3. app/tama.keystore, falls vorhanden.
+     * Ist keiner da, wird die Release-Fassung mit dem Debug-Schluessel
+     * signiert - dann laesst sie sich zwar installieren, ist aber nicht die
+     * offizielle Ausgabe. Genau so verhaelt es sich in einem geklonten
+     * Repository, in dem der Schluessel bewusst fehlt.
+     */
+    def ksPath = System.getenv('TAMA_KEYSTORE') ?: project.findProperty('tamaKeystore') ?: 'tama.keystore'
+    def ksFile = file(ksPath)
+    def hasKs  = ksFile.exists()
+
+    signingConfigs {
+        release {
+            if (hasKs) {
+                storeFile ksFile
+                storePassword System.getenv('TAMA_KEYSTORE_PASSWORD') ?: project.findProperty('tamaKeystorePassword') ?: 'tamapass'
+                keyAlias System.getenv('TAMA_KEY_ALIAS') ?: project.findProperty('tamaKeyAlias') ?: 'tama'
+                keyPassword System.getenv('TAMA_KEY_PASSWORD') ?: project.findProperty('tamaKeyPassword') ?: 'tamapass'
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig hasKs ? signingConfigs.release : signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            signingConfig hasKs ? signingConfigs.release : signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures { buildConfig true }
+
+    /*
+     * Lint prueft unter anderem, ob irgendwo eine Schnittstelle benutzt wird,
+     * die es auf der Mindestversion (minSdk) noch gar nicht gibt - die
+     * Regel heisst NewApi. Genau das laesst sich nicht durch Nachdenken
+     * sicherstellen, wohl aber durch Nachsehen, deshalb bricht der Bau bei
+     * einem Fund ab.
+     */
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+        warningsAsErrors false
+        textReport true
+        // Diese drei sind uns wichtig genug, um den Bau anzuhalten:
+        //   NewApi            - Aufruf gibt es auf minSdk noch nicht
+        //   MissingTranslation- ein Text fehlt in einer der beiden Sprachen
+        //   ExtraTranslation  - Uebersetzung ohne Gegenstueck
+        fatal 'NewApi', 'MissingTranslation', 'ExtraTranslation'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+}
+
+dependencies {
+}

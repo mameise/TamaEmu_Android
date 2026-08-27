@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings">Einstellungen</string>
+    <string name="import_hint">Keine Firmware geladen.\nTippe \u2699 und importiere deinen eigenen ROM-Dump.</string>
+    <string name="widget_desc">TamaEmu im Ei</string>
+    <string name="widget_desc_big">TamaEmu im Ei, gro\u00dfer Bildschirm</string>
+    <string name="notif_running">Emulator l\u00e4uft</string>
+    <string name="call_notice_title">Dein Tama ruft</string>
+    <string name="call_notice_text">Es braucht Aufmerksamkeit.</string>
+    <string name="call_notice_channel">Ruf</string>
+
+    <string name="sec_general">Allgemein</string>
+    <string name="language">Sprache: %s</string>
+    <string name="lang_system">Systemsprache</string>
+    <string name="language_hint">Standardm\u00e4\u00dfig folgt die App der Sprache deines Handys. Hier l\u00e4sst sie sich davon abweichend einstellen.</string>
+    <string name="sec_rom">Firmware</string>
+    <string name="sec_device">Ger\u00e4t</string>
+    <string name="sec_clock">Uhr</string>
+    <string name="sec_display">Anzeige</string>
+    <string name="sec_sound">Ton und Vibration</string>
+    <string name="sec_background">Hintergrund</string>
+    <string name="sec_save">Spielstand</string>
+    <string name="sec_dlc">Zusatzinhalte</string>
+    <string name="sec_visit">Besuch (zwei Handys verbinden)</string>
+    <string name="sec_app">App</string>
+    <string name="sec_about">\u00dcber</string>
+
+    <string name="import_rom">Firmware importieren (.bin)</string>
+    <string name="rom_present">Firmware geladen \u2713</string>
+    <string name="rom_present_name">Firmware geladen \u2713  (%s)</string>
+    <string name="rom_missing">Keine Firmware geladen</string>
+    <string name="device_lbl">Ger\u00e4t: %s</string>
+    <string name="device_guess">Ger\u00e4t (Vorschlag markiert)</string>
+    <string name="device_hint">Ein Dump sagt nicht, welches Modell er ist \u2013 w\u00e4hle das Profil hier. Jedes Ger\u00e4t hat seinen eigenen Spielstand.</string>
+
+    <string name="speed_lbl">Spieluhr: x%d</string>
+    <string name="speed_down">Spieluhr langsamer</string>
+    <string name="speed_reset">Spieluhr zur\u00fccksetzen (x1)</string>
+    <string name="speed_hint">Eine schnellere Spieluhr l\u00e4sst dein Tama schneller altern. Animationen und Ton bleiben normal. Stufen: 1 2 5 10 30 60 120 300 600.</string>
+    <string name="stay_awake">Wachhalten: %s</string>
+    <string name="stay_awake_hint">Standardm\u00e4\u00dfig an. Das echte Ger\u00e4t schaltet den Bildschirm nach ein paar Sekunden ohne Tastendruck ab, was hier nicht gewollt ist. Nur abschalten, wenn du genau das nachstellen willst.</string>
+
+    <string name="egg_color">Ei-Farbe: %s</string>
+    <string name="widget_rate">Widget-Takt: %s</string>
+    <string name="rate_fast">2 Bilder/s</string>
+    <string name="rate_mid">1 Bild/s</string>
+    <string name="rate_eco">sparsam</string>
+
+    <string name="sound_lbl">Ton: %s</string>
+    <string name="sound_vol">Lautst\u00e4rke: %s</string>
+    <string name="vol_low">leise</string>
+    <string name="vol_mid">mittel</string>
+    <string name="vol_high">laut</string>
+    <string name="vib_mode">Vibration: %s</string>
+    <string name="vib_every_tone">bei jedem Ton</string>
+    <string name="vib_call_only">nur wenn dein Tama ruft</string>
+    <string name="vib_dur">Vibrationsdauer: %d ms</string>
+    <string name="vib_rep">Erneut erinnern: %s</string>
+    <string name="minutes">alle %d min</string>
+    <string name="call_notify">Benachrichtigung bei Ruf: %s</string>
+    <string name="call_expiry">Ruf verf\u00e4llt nach: %s</string>
+    <string name="call_hint">Ein Ruf wird an seiner Melodie erkannt, deshalb MUSS DER TON IM TAMAGOTCHI SELBST AN BLEIBEN \u2013 pr\u00fcfe die Toneinstellung im Men\u00fc des Ger\u00e4ts. Wenn du ihn nicht h\u00f6ren willst, schalte stattdessen hier in der App \u201eTon\u201c aus: das stellt nur den Lautsprecher stumm, Vibration und Benachrichtigung arbeiten weiter.\n\nEin Tastendruck gilt als Pflege und hakt den Ruf ab; unbeantwortet verf\u00e4llt er von selbst.</string>
+
+    <string name="bg_run">Im Hintergrund weiterlaufen: %s</string>
+    <string name="catchup">Verlorene Zeit nachholen: %s</string>
+    <string name="catchup_hint">War die App zu, l\u00e4uft die Spieluhr danach schneller, bis die vers\u00e4umte Zeit durchlebt ist. Das holt verlorene SPIELZEIT nach, damit dein Tama richtig altert \u2013 es stellt die Uhr NICHT auf die Uhrzeit des Handys. Daf\u00fcr gibt es \u201eUhr auf Handyzeit stellen\u201c beim Spielstand. Gedeckelt auf 24 Stunden.</string>
+
+    <string name="save_export">Spielstand exportieren</string>
+    <string name="save_import">Spielstand importieren</string>
+    <string name="set_clock">Uhr auf Handyzeit stellen</string>
+    <string name="set_clock_confirm">Die Uhr deines Tamas auf %s stellen? Anders als beim Nachholen ist das ein Sprung \u2013 dein Tama durchlebt die \u00fcbersprungenen Minuten nicht.</string>
+    <string name="set_clock_hint">Dein Tama hat eine eigene Uhr, gestellt beim Schl\u00fcpfen. Sie folgt dem Handy nie von selbst. Nutze das, wenn beide auseinandergelaufen sind und wieder zusammenpassen sollen.</string>
+    <string name="restart">Von vorn anfangen</string>
+    <string name="restart_confirm">Von vorn anfangen? Wie Batterie raus und rein \u2013 dein Spielstand bleibt.</string>
+    <string name="restart_hint">L\u00e4sst die Firmware wieder von ihrem Startbildschirm laufen. Der Spielstand bleibt unangetastet.</string>
+    <string name="wipe">Spielstand l\u00f6schen</string>
+    <string name="wipe_confirm">Spielstand wirklich l\u00f6schen? Dein Tama f\u00e4ngt von vorn an.</string>
+    <string name="no_save">Noch kein Spielstand vorhanden.</string>
+    <string name="import_failed">Fehlgeschlagen.</string>
+    <string name="done">Fertig.</string>
+
+    <string name="dlc_install">Dateien w\u00e4hlen und installieren</string>
+    <string name="dlc_slots">Pl\u00e4tze anzeigen und freigeben</string>
+    <string name="dlc_slot_empty">frei</string>
+    <string name="dlc_already_empty">Dieser Platz ist schon frei.</string>
+    <string name="dlc_no_stores">F\u00fcr dieses Ger\u00e4t sind keine Pl\u00e4tze bekannt.</string>
+    <string name="dlc_free_title">Platz freigeben?</string>
+    <string name="dlc_free_msg">%s wird gel\u00f6scht. Das l\u00e4sst sich nicht r\u00fcckg\u00e4ngig machen.</string>
+    <string name="dlc_after">--- Pl\u00e4tze danach ---</string>
+    <string name="dlc_hint">Dateien (.jpg oder .bin) w\u00e4hlen, die zu genau diesem Ger\u00e4t passen. Bei einem mehrteiligen Satz alle Teile auf einmal ausw\u00e4hlen. Vor jeder \u00c4nderung wird eine .bak-Kopie angelegt.\n\nDie Pl\u00e4tze sind fest und knapp \u2013 ein Tamagotchi iD L fasst nur ZWEI heruntergeladene Spiele. Eingebaute Spiele liegen woanders, sie zu l\u00f6schen gibt nichts frei. Erst oben einen Platz freigeben.</string>
+
+    <string name="visit_status">Status: %s</string>
+    <string name="vs_off">aus</string>
+    <string name="vs_waiting">Gastgeber auf %s \u2013 wartet</string>
+    <string name="vs_core">Emulator verbunden \u2013 wartet auf das andere Handy</string>
+    <string name="vs_peer">anderes Handy verbunden (%s)</string>
+    <string name="vs_connecting">verbindet zu %s</string>
+    <string name="vs_running">Besuch l\u00e4uft</string>
+    <string name="vs_lost">Verbindung getrennt</string>
+    <string name="vs_error">Fehler: %s</string>
+    <string name="visit_hint">Beide Handys ins gleiche WLAN. Ein Handy ist Gastgeber, das andere verbindet sich auf dessen Adresse. Danach am Tama wie gewohnt den Verbindungsmodus aufrufen.\nDieses Handy: %1$s, Port %2$d</string>
+    <string name="visit_host">Gastgeber sein</string>
+    <string name="visit_join">Zu einem Gastgeber verbinden</string>
+    <string name="visit_stop">Besuch beenden</string>
+    <string name="visit_lead">Zeitpuffer: %.1f ms</string>
+    <string name="visit_lead_hint">Ein Kompromiss. Zu wenig, und Zittern im WLAN verdirbt Bytes; zu viel, und die Zeitschranken der Firmware laufen ab, obwohl jedes Byte ankommt. Scheitert ein Besuch, zuerst den kleinsten Wert probieren.</string>
+    <string name="ip_hint">z.B. 192.168.1.42:7878</string>
+    <string name="connect_btn">Verbinden</string>
+
+    <string name="app_quit">App schlie\u00dfen (Prozess beenden)</string>
+    <string name="app_quit_msg">Der Spielstand wird gesichert, dann h\u00f6rt alles auf: Emulator, Hintergrunddienst und Benachrichtigungen. Du startest die App danach selbst wieder.</string>
+    <string name="app_quit_hint">St\u00e4rker als der Neustart des Emulators: danach l\u00e4uft nichts mehr weiter.</string>
+
+    <string name="about">\u00dcber</string>
+    <string name="about_msg">TamaEmu f\u00fcr Android %s\n\nEine Android-Portierung von tamaemu, einem Emulator f\u00fcr die Farb-Tamagotchis mit dem Epson-S1C33-Prozessor.\n\nDer Emulatorkern stammt von maragotchi:\nhttps://github.com/maragotchi/tamaemu\n\nDiese App ist freie Software unter der GNU General Public License Version 3. Das gilt f\u00fcr den Emulatorkern wie f\u00fcr diese Portierung. Der vollst\u00e4ndige Lizenztext liegt dem Quelltext bei.\n\nQuelltext dieser App:\nhttps://github.com/mameise/TamaEmu_Android\n\nEs ist keine Firmware enthalten, und es wird nie eine hochgeladen. Du brauchst einen ROM-Dump eines Ger\u00e4ts, das dir geh\u00f6rt; er wird in den privaten App-Ordner kopiert und bleibt auf deinem Handy.</string>
+
+    <string name="speed_ok">Tempo der Emulation: %d %% der Echtzeit.</string>
+    <string name="speed_slow">Tempo der Emulation: %d %% der Echtzeit \u2013 dieses Handy kommt nicht ganz mit, dein Tama bewegt sich also langsamer als das echte Ger\u00e4t. Seine Uhr geht trotzdem richtig.</string>
+    <string name="on">an</string>
+    <string name="off">aus</string>
+
+    <string-array name="egg_colors">
+        <item>T\u00fcrkis</item>
+        <item>Rosa</item>
+        <item>Gr\u00fcn</item>
+        <item>Blau</item>
+        <item>Gelb</item>
+        <item>Lila</item>
+        <item>Orange</item>
+        <item>Grau</item>
+    </string-array>
+</resources>

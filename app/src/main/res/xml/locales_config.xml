@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Damit Android 13 und neuer die Sprache auch in den Systemeinstellungen
+     je App anbietet. Aeltere Fassungen ignorieren die Datei. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="de" />
+</locale-config>

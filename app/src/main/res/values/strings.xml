@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Standardsprache dieser Datei; Uebersetzungen liegen in values-de/. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="app_name" translatable="false">TamaEmu</string>
+    <string name="settings">Settings</string>
+    <string name="import_hint">No firmware loaded.\nTap \u2699 and import your own ROM dump.</string>
+    <string name="widget_desc">TamaEmu in an egg</string>
+    <string name="widget_desc_big">TamaEmu in an egg, large screen</string>
+    <string name="notif_running">Emulator running</string>
+    <string name="call_notice_title">Your Tama is calling</string>
+    <string name="call_notice_text">It needs attention.</string>
+    <string name="call_notice_channel">Attention</string>
+
+    <string name="sec_general">General</string>
+    <string name="language">Language: %s</string>
+    <string name="lang_system">System language</string>
+    <string name="language_hint">By default the app follows your phone\'s language. Change it here if you want it different.</string>
+    <string name="sec_rom">Firmware</string>
+    <string name="sec_device">Device</string>
+    <string name="sec_clock">Clock</string>
+    <string name="sec_display">Display</string>
+    <string name="sec_sound">Sound and vibration</string>
+    <string name="sec_background">Background</string>
+    <string name="sec_save">Save data</string>
+    <string name="sec_dlc">Downloads</string>
+    <string name="sec_visit">Visit (connect two phones)</string>
+    <string name="sec_app">App</string>
+    <string name="sec_about">About</string>
+
+    <string name="import_rom">Import firmware (.bin)</string>
+    <string name="rom_present">Firmware loaded \u2713</string>
+    <string name="rom_present_name">Firmware loaded \u2713  (%s)</string>
+    <string name="rom_missing">No firmware loaded</string>
+    <string name="device_lbl">Device: %s</string>
+    <string name="device_guess">Device (suggestion marked)</string>
+    <string name="device_hint">A dump does not say which model it is, so pick the profile here. Each device keeps its own save data.</string>
+
+    <string name="speed_lbl">Game clock: x%d</string>
+    <string name="speed_down">Game clock slower</string>
+    <string name="speed_reset">Reset game clock (x1)</string>
+    <string name="speed_hint">A faster game clock makes your Tama age faster. Animations and sound stay at normal speed. Steps: 1 2 5 10 30 60 120 300 600.</string>
+    <string name="stay_awake">Keep awake: %s</string>
+    <string name="stay_awake_hint">On by default. The real device turns its screen off after a few seconds without a button press, which is not wanted here. Turn this off only if you want that behaviour back.</string>
+
+    <string name="egg_color">Egg colour: %s</string>
+    <string name="widget_rate">Widget refresh: %s</string>
+    <string name="rate_fast">2 frames/s</string>
+    <string name="rate_mid">1 frame/s</string>
+    <string name="rate_eco">power saving</string>
+
+    <string name="sound_lbl">Sound: %s</string>
+    <string name="sound_vol">Volume: %s</string>
+    <string name="vol_low">low</string>
+    <string name="vol_mid">medium</string>
+    <string name="vol_high">high</string>
+    <string name="vib_mode">Vibration: %s</string>
+    <string name="vib_every_tone">on every sound</string>
+    <string name="vib_call_only">only when your Tama calls</string>
+    <string name="vib_dur">Vibration length: %d ms</string>
+    <string name="vib_rep">Remind again: %s</string>
+    <string name="minutes">every %d min</string>
+    <string name="call_notify">Notification when calling: %s</string>
+    <string name="call_expiry">Call expires after: %s</string>
+    <string name="call_hint">A call is recognised by its melody, so the SOUND INSIDE THE TAMAGOTCHI MUST STAY ON \u2013 check the sound setting in the device\'s own menu. If you do not want to hear it, turn off \"Sound\" here in the app instead: that only mutes the speaker, while vibration and the notification keep working.\n\nPressing any button counts as caring for your Tama and clears the call; an unanswered call expires by itself.</string>
+
+    <string name="bg_run">Keep running in the background: %s</string>
+    <string name="catchup">Catch up lost time: %s</string>
+    <string name="catchup_hint">If the app was closed, the game clock afterwards runs faster until the missed time has been lived through. This makes up for lost GAME TIME so your Tama ages correctly \u2013 it does not set the clock to the phone\'s time of day. For that, use \"Set clock to phone time\" under Save data. Capped at 24 hours.</string>
+
+    <string name="save_export">Export save data</string>
+    <string name="save_import">Import save data</string>
+    <string name="set_clock">Set clock to phone time</string>
+    <string name="set_clock_confirm">Set your Tama\'s clock to %s? Unlike catching up lost time, this is a jump \u2013 your Tama does not live through the skipped minutes.</string>
+    <string name="set_clock_hint">Your Tama keeps its own clock, set when it hatched. It never follows the phone by itself. Use this if the two have drifted apart and you want them to match.</string>
+    <string name="restart">Start over</string>
+    <string name="restart_confirm">Start over? Like removing and reinserting the battery \u2013 your save data stays.</string>
+    <string name="restart_hint">Runs the firmware from its boot screen again. Your save data is untouched.</string>
+    <string name="wipe">Delete save data</string>
+    <string name="wipe_confirm">Really delete the save data? Your Tama starts over.</string>
+    <string name="no_save">No save data yet.</string>
+    <string name="import_failed">Failed.</string>
+    <string name="done">Done.</string>
+
+    <string name="dlc_install">Choose files and install</string>
+    <string name="dlc_slots">Show and free slots</string>
+    <string name="dlc_slot_empty">free</string>
+    <string name="dlc_already_empty">That slot is already free.</string>
+    <string name="dlc_no_stores">No download slots are known for this device.</string>
+    <string name="dlc_free_title">Free this slot?</string>
+    <string name="dlc_free_msg">%s will be deleted. This cannot be undone.</string>
+    <string name="dlc_after">--- slots afterwards ---</string>
+    <string name="dlc_hint">Choose files (.jpg or .bin) made for exactly this device. For a multi part set, select all parts at once. A .bak copy is written before anything changes.\n\nSlots are few and fixed \u2013 a Tamagotchi iD L holds only TWO downloaded games. Built in games live elsewhere, so deleting one frees nothing. Free a slot above first.</string>
+
+    <string name="visit_status">Status: %s</string>
+    <string name="vs_off">off</string>
+    <string name="vs_waiting">hosting on %s \u2013 waiting</string>
+    <string name="vs_core">emulator connected \u2013 waiting for the other phone</string>
+    <string name="vs_peer">other phone connected (%s)</string>
+    <string name="vs_connecting">connecting to %s</string>
+    <string name="vs_running">visit running</string>
+    <string name="vs_lost">connection lost</string>
+    <string name="vs_error">error: %s</string>
+    <string name="visit_hint">Put both phones on the same Wi-Fi. One phone hosts, the other connects to its address. Then open the connection screen on your Tama as usual.\nThis phone: %1$s, port %2$d</string>
+    <string name="visit_host">Host a visit</string>
+    <string name="visit_join">Connect to a host</string>
+    <string name="visit_stop">End visit</string>
+    <string name="visit_lead">Timing buffer: %.1f ms</string>
+    <string name="visit_lead_hint">A trade off. Too little and Wi-Fi jitter corrupts bytes; too much and the firmware\'s own timeouts expire even though every byte arrives. If a visit fails, try the smallest value first.</string>
+    <string name="ip_hint">e.g. 192.168.1.42:7878</string>
+    <string name="connect_btn">Connect</string>
+
+    <string name="app_quit">Close app (end process)</string>
+    <string name="app_quit_msg">Save data is written, then everything stops: emulator, background service and notifications. You start the app again yourself.</string>
+    <string name="app_quit_hint">Stronger than restarting the emulator: nothing keeps running afterwards.</string>
+
+    <string name="about">About</string>
+    <string name="about_msg">TamaEmu for Android %s\n\nAn Android port of tamaemu, an emulator for the colour Tamagotchi models built around the Epson S1C33 processor.\n\nThe emulator core was written by maragotchi:\nhttps://github.com/maragotchi/tamaemu\n\nThis app is free software under the GNU General Public License version 3. That covers the emulator core and this port alike. The full licence text ships with the source code.\n\nSource code for this app:\nhttps://github.com/mameise/TamaEmu_Android\n\nNo firmware is included and none is ever uploaded. You need a ROM dump of a device you own; it is copied into the app\'s private folder and stays on your phone.</string>
+
+    <string name="speed_ok">Emulation speed: %d %% of real time.</string>
+    <string name="speed_slow">Emulation speed: %d %% of real time \u2013 this phone cannot quite keep up, so your Tama moves slower than the real device. Its clock still keeps the right time.</string>
+    <string name="on">on</string>
+    <string name="off">off</string>
+
+    <string-array name="egg_colors">
+        <item>Teal</item>
+        <item>Pink</item>
+        <item>Green</item>
+        <item>Blue</item>
+        <item>Yellow</item>
+        <item>Purple</item>
+        <item>Orange</item>
+        <item>Grey</item>
+    </string-array>
+</resources>

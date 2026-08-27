@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/egg_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="@string/app_name" />
+
+    <!-- Unsichtbare Tap-Flaechen ueber den gezeichneten A/B/C-Kreisen (untere 3 Spalten) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="78" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="21"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/egg_a"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent" />
+            <TextView android:id="@+id/egg_b"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent" />
+            <TextView android:id="@+id/egg_c"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent" />
+        </LinearLayout>
+
+        <TextView android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/egg_hint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:padding="24dp"
+        android:textColor="#222222"
+        android:textSize="12sp"
+        android:visibility="gone"
+        android:text="@string/import_hint" />
+
+    <ImageButton
+        android:id="@+id/egg_gear"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_gravity="top|end"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_gear"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="@string/settings" />
+</FrameLayout>

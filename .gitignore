@@ -1,0 +1,29 @@
+# Gradle und Android Studio
+.gradle/
+/build/
+/app/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+*.iml
+/.idea/
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# Schluesselspeicher gehoert NICHT ins Repository
+*.keystore
+*.jks
+keystore.properties
+keystore.txt
+*.b64
+
+# Nichts davon gehoert ins Repository
+*.apk
+*.aab
+rom.bin
+*.sav
+*.sav.bak
+*.state

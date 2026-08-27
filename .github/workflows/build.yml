@@ -1,0 +1,89 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install NDK and CMake
+        run: |
+          SDK="$ANDROID_SDK_ROOT"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" "ndk;26.1.10909125" "cmake;3.22.1"
+
+      # Der Schluesselspeicher liegt NICHT im Repository. Wer die Geheimnisse
+      # gesetzt hat, bekommt eine signierte APK; alle anderen eine mit dem
+      # Debug-Schluessel - die laesst sich installieren, ist aber nicht die
+      # offizielle Ausgabe.
+      #
+      # Der Schritt bricht NIE ab: ein unbrauchbarer Geheimnis-Inhalt fuehrt
+      # zum Debug-Schluessel statt zu einem gescheiterten Bau. Leerzeichen,
+      # Zeilenumbrueche und eine eventuelle Byte-Reihenfolge-Marke werden
+      # vorher entfernt - genau daran scheitert das Kodieren unter Windows am
+      # haeufigsten.
+      - name: Prepare keystore (optional)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          set +e
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "No KEYSTORE_BASE64 secret set - building with the debug key."
+            exit 0
+          fi
+          KS="$RUNNER_TEMP/tama.jks"
+          printf '%s' "$KEYSTORE_BASE64" \
+            | sed '1s/^\xEF\xBB\xBF//' \
+            | tr -d '\r\n \t' \
+            | base64 -d > "$KS" 2>/dev/null
+          SZ=$(stat -c%s "$KS" 2>/dev/null || echo 0)
+          MAGIC=$(head -c 2 "$KS" 2>/dev/null | od -An -tx1 | tr -d ' ')
+          echo "decoded $SZ bytes, first two bytes: $MAGIC"
+          # Ein Schluesselspeicher (PKCS12 oder JKS) beginnt mit 3082 bzw. feed.
+          if [ "$SZ" -gt 512 ] && { [ "$MAGIC" = "3082" ] || [ "$MAGIC" = "feed" ]; }; then
+            echo "TAMA_KEYSTORE=$KS" >> "$GITHUB_ENV"
+            echo "Signing with the release key."
+          else
+            echo "::warning::KEYSTORE_BASE64 is not a usable keystore - building with the debug key."
+            echo "Expected roughly 3600 characters of pure base64, one line, no header lines."
+            rm -f "$KS"
+          fi
+          exit 0
+
+      # Prueft unter anderem NewApi: Aufrufe, die es auf Android 8 noch nicht
+      # gibt. Faellt hier etwas auf, ist die APK auf alten Geraeten kaputt,
+      # auch wenn sie sich installieren laesst.
+      - name: Lint (API level check)
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon lintRelease
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-release.*
+          if-no-files-found: ignore
+
+      - name: Build release APK
+        env:
+          TAMA_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          TAMA_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          TAMA_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tamaemu-apk
+          path: app/build/outputs/apk/release/*.apk
