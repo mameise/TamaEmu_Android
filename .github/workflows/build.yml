@@ -83,6 +83,22 @@ jobs:
           TAMA_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew --no-daemon assembleRelease
 
+      # Fingerabdruck ausgeben. Ein Update laesst sich nur ueber eine APK mit
+      # DERSELBEN Signatur installieren - wer hier einen anderen Wert sieht als
+      # bei seiner installierten Fassung, muss einmal deinstallieren.
+      - name: Show signing certificate
+        if: always()
+        run: |
+          APK=$(ls app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
+          [ -z "$APK" ] && exit 0
+          SIGNER=$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner 2>/dev/null | tail -1)
+          if [ -n "$SIGNER" ]; then
+            "$SIGNER" verify --print-certs "$APK" | grep -i 'SHA-256 digest\|Signer #1 certificate DN' || true
+          fi
+          if [ -z "$TAMA_KEYSTORE" ]; then
+            echo "::warning::Built with the DEBUG key - this APK cannot update a release build, and the debug key differs per build machine."
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: tamaemu-apk

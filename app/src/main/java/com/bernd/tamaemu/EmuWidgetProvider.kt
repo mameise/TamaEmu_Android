@@ -64,6 +64,7 @@ open class EmuWidgetProvider : AppWidgetProvider() {
             rv.setOnClickPendingIntent(R.id.plain_a, broadcast(ctx, ACT_A, 21))
             rv.setOnClickPendingIntent(R.id.plain_b, broadcast(ctx, ACT_B, 22))
             rv.setOnClickPendingIntent(R.id.plain_c, broadcast(ctx, ACT_C, 23))
+            rv.setOnClickPendingIntent(R.id.plain_gear, gearIntent(ctx))
             rv.setOnClickPendingIntent(R.id.plain_image, openAppIntent(ctx))
             rv.setOnClickPendingIntent(R.id.plain_hint, openAppIntent(ctx))
             mgr.updateAppWidget(id, rv)

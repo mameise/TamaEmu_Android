@@ -30,6 +30,7 @@ class MainActivity : Activity() {
     private lateinit var hint: TextView
     private lateinit var speedRow: LinearLayout
     private lateinit var btnRow: LinearLayout
+    private lateinit var gearRow: LinearLayout
     private lateinit var speedLabel: TextView
     private var btnH = 0
 
@@ -90,7 +91,10 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { leftMargin = (8 * d).toInt(); rightMargin = (8 * d).toInt() }
+            ).apply {
+                leftMargin = (8 * d).toInt(); rightMargin = (8 * d).toInt()
+                bottomMargin = (12 * d).toInt()   // sonst klebt es an A/B/C
+            }
         }
         speedLabel = TextView(this).apply {
             setTextColor(Color.WHITE)
@@ -122,11 +126,36 @@ class MainActivity : Activity() {
             setOnClickListener { openSettings() }
         })
 
+        /*
+         * Zahnrad fuer den Fall, dass die Knopfreihe ausgeblendet ist (reine
+         * Gamepad-Bedienung). Dezent unten rechts, damit es nicht stoert -
+         * aber gross genug zum Treffen. Ohne das kaeme man nicht mehr in die
+         * Einstellungen und muesste die App neu installieren.
+         */
+        gearRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.END
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                rightMargin = (12 * d).toInt(); bottomMargin = (16 * d).toInt()
+            }
+            addView(TextView(this@MainActivity).apply {
+                text = "\u2699"
+                textSize = 22f
+                setTextColor(Color.parseColor("#77FFFFFF"))
+                setPadding((14 * d).toInt(), (6 * d).toInt(), (14 * d).toInt(), (6 * d).toInt())
+                setOnClickListener { openSettings() }
+            })
+        }
+
         btnRow = row
         root.addView(panel)
         root.addView(hint)
         root.addView(speedRow)
         root.addView(row)
+        root.addView(gearRow)
         setContentView(root)
     }
 
@@ -192,6 +221,9 @@ class MainActivity : Activity() {
         }
         speedRow.visibility = if (this.speedOnUi) View.VISIBLE else View.GONE
         btnRow.visibility = if (this.showButtons) View.VISIBLE else View.GONE
+        // Das Zahnrad braucht es nur, wenn die Knopfreihe (mit ihrem eigenen
+        // Zahnrad) nicht da ist.
+        gearRow.visibility = if (this.showButtons) View.GONE else View.VISIBLE
         setSpeed(this.speed)
 
         running = true

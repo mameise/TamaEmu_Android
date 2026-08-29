@@ -232,7 +232,14 @@ object EggRenderer {
          * Tap-Bandes im Layout (78..99 %). */
         val yBand = if (big) 0.86f else 0.805f
         val r = minOf(w, h) * (if (big) 0.075f else 0.085f)
-        val xs = floatArrayOf(w / 6f, w / 2f, w * 5f / 6f)
+        /*
+         * Frueher lagen die Mitten bei 1/6, 1/2 und 5/6 der Breite - das ist
+         * zwar genau die Mitte der drei Tap-Spalten, sieht aber unnatuerlich
+         * weit auseinander aus und passt nicht zum Ei, wo die Knoepfe enger
+         * stehen. Jetzt 24 / 50 / 76 %: naeher beisammen, und jeder Knopf
+         * liegt weiterhin sicher in seinem Drittel (0..33, 33..66, 66..100 %).
+         */
+        val xs = floatArrayOf(w * 0.24f, w * 0.50f, w * 0.76f)
         val ys = floatArrayOf(h * yBand, h * yBand + r * 0.5f, h * yBand)
         return Triple(xs, ys, r)
     }

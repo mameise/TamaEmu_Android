@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Schlichtes Widget: nur der Bildschirm, darunter drei echte Schaltflaechen.
-     Kein Ei, kein gezeichneter Rahmen. -->
+     Beide Zeilen sind gewichtet, damit alles mitwaechst, wenn das Widget
+     groesser gezogen wird. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,7 +10,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="78">
 
         <ImageView
             android:id="@+id/plain_image"
@@ -19,31 +20,46 @@
             android:contentDescription="@string/app_name"
             android:scaleType="fitCenter" />
 
+        <!-- Zahnrad wie bei den Ei-Ausfuehrungen: oben rechts, dezent, aber
+             gross genug zum Treffen. -->
+        <ImageView
+            android:id="@+id/plain_gear"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="top|end"
+            android:alpha="0.75"
+            android:contentDescription="@string/settings"
+            android:padding="4dp"
+            android:src="@drawable/ic_gear" />
+
         <TextView
             android:id="@+id/plain_hint"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
             android:padding="8dp"
+            android:text="@string/import_hint"
             android:textColor="#DDDDDD"
             android:textSize="12sp"
-            android:visibility="gone"
-            android:text="@string/import_hint" />
+            android:visibility="gone" />
     </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:layout_height="0dp"
+        android:layout_weight="22"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="4dp">
 
         <Button
             android:id="@+id/plain_a"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1"
             android:background="@drawable/btn_plain"
             android:text="A"
             android:textColor="#333333"
@@ -51,10 +67,11 @@
 
         <Button
             android:id="@+id/plain_b"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1"
             android:background="@drawable/btn_plain"
             android:text="B"
             android:textColor="#333333"
@@ -62,10 +79,11 @@
 
         <Button
             android:id="@+id/plain_c"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1"
             android:background="@drawable/btn_plain"
             android:text="C"
             android:textColor="#333333"

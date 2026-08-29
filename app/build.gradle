@@ -6,7 +6,7 @@ plugins {
 // Kennung des Builds. Sie geht in die Zustandsdatei ein: aendert sich der
 // Aufbau der Emu-Struktur, passt ein alter Zustand nicht mehr und wird
 // verworfen. Bei jeder Veroeffentlichung mit hochzaehlen.
-def BUILD_TAG = 'v42'
+def BUILD_TAG = 'v44'
 
 android {
     namespace 'com.bernd.tamaemu'
@@ -17,7 +17,7 @@ android {
         applicationId 'com.bernd.tamaemu'
         minSdk 26
         targetSdk 33
-        versionCode 42
+        versionCode 44
         versionName "1.0"
         buildConfigField 'String', 'BUILD_TAG', "\"${BUILD_TAG}\""
         /*

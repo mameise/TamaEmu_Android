@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Runder Knopf fuer das schlichte Widget. Bewusst hell und schlicht,
-     damit er auf jedem Hintergrund erkennbar bleibt. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+<!-- Knopf fuer das schlichte Widget: abgerundetes Rechteck statt Kreis, damit
+     er sich in die Breite ziehen laesst und mit dem Widget mitwaechst. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <solid android:color="#ECEEF0" />
     <stroke android:width="2dp" android:color="#8A8E92" />
+    <corners android:radius="8dp" />
 </shape>
