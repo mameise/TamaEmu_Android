@@ -111,9 +111,10 @@ object EggRenderer {
      */
     /** Ergebnis der Geometrieberechnung: alles liegt garantiert im Ei. */
     /**
-     * Ausfuehrung eines Ei-Widgets. HOCH rechnet wie KOMPAKT, deckelt den
-     * Bildschirm aber auf die Groesse, die er bei quadratischem Widget haette -
-     * so bleibt im Hochformat mehr Ei sichtbar, statt dass der Schirm mitwaechst.
+     * Ausfuehrung eines Ei-Widgets. HOCH rechnet wie KOMPAKT, nutzt die Breite
+     * aber voll aus: das Ei wird hoeher, der Bildschirm entsprechend groesser.
+     * (Zuerst war er auf die Kompakt-Groesse gedeckelt - das wirkte im
+     * Hochformat zu klein.)
      */
     enum class Art { KOMPAKT, GROSS, HOCH }
 
@@ -202,14 +203,6 @@ object EggRenderer {
             val mid = (lo + hi) / 2f
             val y = place(mid)
             if (y == null) hi = mid else { bestSide = mid; bestY = y; lo = mid }
-        }
-        if (art == Art.HOCH) {
-            /* So gross wie bei quadratischem Widget gleicher Breite. */
-            val deckel = geo(w, w, Art.KOMPAKT).side
-            if (bestSide > deckel) {
-                bestSide = deckel
-                bestY = minOf(cy, botLimit - bestSide / 2f)
-            }
         }
         return Geo(cx, cy, a, b, bestSide, bestY, yb, br, dx, frame)
     }
