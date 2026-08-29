@@ -110,7 +110,8 @@ object EggRenderer {
      *             werden kleiner. Fuer die grosse Widget-Ausfuehrung.
      */
     /** Ergebnis der Geometrieberechnung: alles liegt garantiert im Ei. */
-    private class Geo(
+    /** Alle Masse eines Widgets in Pixeln - fuer das Ei UND fuer die Vorlage. */
+    class Geo(
         val cx: Float, val cy: Float, val a: Float, val b: Float,
         val side: Float, val ys: Float,
         val yb: Float, val br: Float, val dx: Float, val frame: Float
@@ -124,7 +125,7 @@ object EggRenderer {
      * Seitenlaenge eingeschachtelt und jedes Mal geprueft, ob die Ecken noch in
      * der Ellipse liegen - mitsamt Rahmen und etwas Sicherheitsabstand.
      */
-    private fun geo(w: Int, h: Int, big: Boolean): Geo {
+    fun geo(w: Int, h: Int, big: Boolean): Geo {
         val mn = minOf(w, h).toFloat()
         val m = mn * 0.03f
         val cx = w / 2f
@@ -201,48 +202,17 @@ object EggRenderer {
      * ---------------------------------------------------------------------
      * Eigenes Widget-Bild
      *
-     * Wer sein eigenes Gehaeuse zeichnen will, braucht feste Bezugspunkte.
-     * Deshalb liegen Bildschirm und Knoepfe beim eigenen Bild NICHT dort, wo
-     * die Ei-Rechnung sie hinlegt, sondern an festen Anteilen der Flaeche -
-     * dieselben, die auch die Vorlage zeigt und die die unsichtbaren
-     * Tap-Flaechen im Layout benutzen.
+     * Wichtig: hier wird NICHTS neu ausgerechnet. Bildschirm und Knoepfe
+     * liegen exakt dort, wo sie auch beim Ei liegen - dieselbe Funktion geo(),
+     * dieselben Masse. Sonst passt ein selbst gemaltes Gehaeuse nicht zu dem,
+     * was die App zeichnet, und der Bildschirm waere je nach Bild verschieden
+     * gross.
      *
-     * Das Bild wird auf die Widget-Groesse GEZOGEN (nicht beschnitten), damit
-     * die Anteile immer stimmen. Ein Bild in anderem Seitenverhaeltnis wird
-     * also verzerrt - deshalb sind die Vorlagen quadratisch.
+     * Das Bild wird auf die Widget-Groesse gezogen. Bei quadratischem Widget
+     * deckt sich die Vorlage deshalb genau; bei stark abweichendem
+     * Seitenverhaeltnis verzerrt das Gehaeuse, waehrend der Bildschirm dort
+     * bleibt, wo die App ihn zeichnet.
      */
-    private fun schirmAnteil(big: Boolean) =
-        if (big) floatArrayOf(0.05f, 0.72f) else floatArrayOf(0.07f, 0.64f)
-
-    /** Bildschirmfeld in Pixeln fuer ein eigenes Bild. */
-    fun skinScreenRect(w: Int, h: Int, big: Boolean): Rect {
-        val a = schirmAnteil(big)
-        val oben = h * a[0]
-        val unten = h * a[1]
-        val seite = minOf(w * (if (big) 0.90f else 0.84f), unten - oben)
-        val left = ((w - seite) / 2f).toInt()
-        val top = (oben + (unten - oben - seite) / 2f).toInt()
-        return Rect(left, top, left + seite.toInt(), top + seite.toInt())
-    }
-
-    /** Mitten und Radius der drei Knoepfe fuer die Vorlage. */
-    fun skinButtons(w: Int, h: Int, big: Boolean): Triple<FloatArray, FloatArray, Float> {
-        /* Bei 0.885 stiess der untere Knopfrand in der grossen Ausfuehrung an
-         * die Bildkante (99 %). 0.86 laesst Luft, bleibt aber innerhalb des
-         * Tap-Bandes im Layout (78..99 %). */
-        val yBand = if (big) 0.86f else 0.805f
-        val r = minOf(w, h) * (if (big) 0.075f else 0.085f)
-        /*
-         * Frueher lagen die Mitten bei 1/6, 1/2 und 5/6 der Breite - das ist
-         * zwar genau die Mitte der drei Tap-Spalten, sieht aber unnatuerlich
-         * weit auseinander aus und passt nicht zum Ei, wo die Knoepfe enger
-         * stehen. Jetzt 24 / 50 / 76 %: naeher beisammen, und jeder Knopf
-         * liegt weiterhin sicher in seinem Drittel (0..33, 33..66, 66..100 %).
-         */
-        val xs = floatArrayOf(w * 0.24f, w * 0.50f, w * 0.76f)
-        val ys = floatArrayOf(h * yBand, h * yBand + r * 0.5f, h * yBand)
-        return Triple(xs, ys, r)
-    }
 
     /** Eigenes Bild, falls der Benutzer eines hinterlegt hat. */
     private fun skinBitmap(ctx: Context, big: Boolean): Bitmap? {
@@ -258,8 +228,14 @@ object EggRenderer {
         val cv = Canvas(bmp)
         val glatt = Paint(Paint.FILTER_BITMAP_FLAG)
         cv.drawBitmap(skin, Rect(0, 0, skin.width, skin.height), Rect(0, 0, w, h), glatt)
-        val r = skinScreenRect(w, h, big)
-        cv.drawBitmap(screenBmp, src, r, flat)
+
+        /* Bildschirm genau dort und genau so gross wie beim Ei. */
+        val g = geo(w, h, big)
+        val s = g.side
+        val left = (g.cx - s / 2f).toInt()
+        val top = (g.ys - s / 2f).toInt()
+        dst2.set(left, top, left + s.toInt(), top + s.toInt())
+        cv.drawBitmap(screenBmp, src, dst2, flat)
         return bmp
     }
 

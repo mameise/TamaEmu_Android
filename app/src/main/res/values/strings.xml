@@ -135,7 +135,7 @@
     <string name="skin_template_big">Save template (large)</string>
     <string name="skin_reset">Back to the egg</string>
     <string name="skin_bad">That file could not be read as an image.</string>
-    <string name="skin_hint">You can replace the egg with your own artwork. Save a template first \u2013 it marks where the screen and the three buttons sit \u2013 then paint around those areas and pick the finished image here. The templates are square because the image is stretched to the widget, so any other shape will distort. PNG with transparency works.</string>
+    <string name="skin_hint">You can replace the egg with your own artwork. Save a template first - it marks the egg outline, the screen and the three buttons exactly where the app draws them - then paint your case around those marks and pick the finished image here. The screen keeps the same size and position as with the egg. Templates are square because the image is stretched to the widget, so other shapes will distort. PNG with transparency works.</string>
     <string name="on">on</string>
     <string name="off">off</string>
 

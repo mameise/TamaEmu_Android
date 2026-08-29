@@ -133,7 +133,7 @@
     <string name="skin_template_big">Vorlage sichern (gro\u00df)</string>
     <string name="skin_reset">Zur\u00fcck zum Ei</string>
     <string name="skin_bad">Diese Datei lie\u00df sich nicht als Bild lesen.</string>
-    <string name="skin_hint">Du kannst das Ei durch ein eigenes Bild ersetzen. Sichere zuerst eine Vorlage \u2013 sie zeigt, wo Bildschirm und die drei Kn\u00f6pfe liegen \u2013, male dein Geh\u00e4use darum herum und w\u00e4hle das fertige Bild hier aus. Die Vorlagen sind quadratisch, weil das Bild auf die Widget-Gr\u00f6\u00dfe gezogen wird; andere Seitenverh\u00e4ltnisse verzerren. PNG mit Transparenz geht.</string>
+    <string name="skin_hint">Du kannst das Ei durch ein eigenes Bild ersetzen. Sichere zuerst eine Vorlage – sie zeigt Umriss, Bildschirm und die drei Knöpfe genau dort, wo die App sie zeichnet –, male dein Gehäuse um diese Markierungen herum und wähle das fertige Bild hier aus. Der Bildschirm behält Größe und Lage wie beim Ei. Die Vorlagen sind quadratisch, weil das Bild auf die Widget-Größe gezogen wird; andere Seitenverhältnisse verzerren. PNG mit Transparenz geht.</string>
     <string name="on">an</string>
     <string name="off">aus</string>
 

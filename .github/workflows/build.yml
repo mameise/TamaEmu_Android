@@ -46,16 +46,26 @@ jobs:
             | sed '1s/^\xEF\xBB\xBF//' \
             | tr -d '\r\n \t' \
             | base64 -d > "$KS" 2>/dev/null
+          CHARS=$(printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n \t' | wc -c)
           SZ=$(stat -c%s "$KS" 2>/dev/null || echo 0)
           MAGIC=$(head -c 2 "$KS" 2>/dev/null | od -An -tx1 | tr -d ' ')
-          echo "decoded $SZ bytes, first two bytes: $MAGIC"
+          echo "secret: $CHARS base64 characters -> decoded $SZ bytes, first two bytes: $MAGIC"
           # Ein Schluesselspeicher (PKCS12 oder JKS) beginnt mit 3082 bzw. feed.
           if [ "$SZ" -gt 512 ] && { [ "$MAGIC" = "3082" ] || [ "$MAGIC" = "feed" ]; }; then
             echo "TAMA_KEYSTORE=$KS" >> "$GITHUB_ENV"
             echo "Signing with the release key."
           else
             echo "::warning::KEYSTORE_BASE64 is not a usable keystore - building with the debug key."
-            echo "Expected roughly 3600 characters of pure base64, one line, no header lines."
+            if [ "$MAGIC" = "3082" ] && [ "$SZ" -le 512 ]; then
+              echo "The secret starts correctly but is TRUNCATED ($SZ of about 2700 bytes)."
+              echo "Copying it through an editor or the console usually cuts it. In PowerShell:"
+              echo '  $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\tama.keystore"))'
+              echo '  $b64.Length      # must be about 3592'
+              echo '  $b64 | Set-Clipboard'
+              echo "then paste straight into the secret field."
+            else
+              echo "Expected roughly 3600 characters of pure base64, one line, no header lines."
+            fi
             rm -f "$KS"
           fi
           exit 0
