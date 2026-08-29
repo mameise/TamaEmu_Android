@@ -64,6 +64,17 @@
         </receiver>
 
         <receiver
+            android:name=".EmuWidgetTallProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_tall" />
+        </receiver>
+
+        <receiver
             android:name=".EmuWidgetPlainProvider"
             android:exported="true">
             <intent-filter>

@@ -19,7 +19,7 @@ class SettingsActivity : Activity() {
     private val REQ_DLC = 104
     private val REQ_SKIN = 105
     private val REQ_TEMPLATE = 106
-    private var skinBig = false
+    private var skinArt = EggRenderer.Art.KOMPAKT
 
     private lateinit var box: LinearLayout
     private lateinit var romStatus: TextView
@@ -84,10 +84,12 @@ class SettingsActivity : Activity() {
             eggColor = (eggColor + 1) % EggRenderer.EGG_COUNT
             EmuWidgetProvider.renderWidgets(this, force = true)
         }
-        button(R.string.skin_pick_small) { pickSkin(false) }
-        button(R.string.skin_pick_big) { pickSkin(true) }
-        button(R.string.skin_template_small) { saveTemplate(false) }
-        button(R.string.skin_template_big) { saveTemplate(true) }
+        button(R.string.skin_pick_small) { pickSkin(EggRenderer.Art.KOMPAKT) }
+        button(R.string.skin_pick_big) { pickSkin(EggRenderer.Art.GROSS) }
+        button(R.string.skin_pick_tall) { pickSkin(EggRenderer.Art.HOCH) }
+        button(R.string.skin_template_small) { saveTemplate(EggRenderer.Art.KOMPAKT) }
+        button(R.string.skin_template_big) { saveTemplate(EggRenderer.Art.GROSS) }
+        button(R.string.skin_template_tall) { saveTemplate(EggRenderer.Art.HOCH) }
         button(R.string.skin_reset) { resetSkins() }
         hint(R.string.skin_hint)
 
@@ -334,19 +336,19 @@ class SettingsActivity : Activity() {
 
             REQ_SKIN -> runCatching {
                 contentResolver.openInputStream(uri)!!.use { input ->
-                    EmuFiles.skin(this, skinBig).outputStream().use { input.copyTo(it) }
+                    EmuFiles.skin(this, skinArt).outputStream().use { input.copyTo(it) }
                 }
                 // Sofort einmal einlesen: was hier nicht als Bild durchgeht,
                 // wuerde spaeter still zum Ei zurueckfallen.
                 val ok = android.graphics.BitmapFactory
-                    .decodeFile(EmuFiles.skin(this, skinBig).absolutePath) != null
-                if (!ok) { EmuFiles.skin(this, skinBig).delete(); error("kein Bild") }
+                    .decodeFile(EmuFiles.skin(this, skinArt).absolutePath) != null
+                if (!ok) { EmuFiles.skin(this, skinArt).delete(); error("kein Bild") }
                 EmuWidgetProvider.renderWidgets(this, force = true)
             }.onSuccess { toast(getString(R.string.done)) }
                 .onFailure { toast(getString(R.string.skin_bad)) }
 
             REQ_TEMPLATE -> runCatching {
-                val bmp = SkinTemplate.build(this, skinBig)
+                val bmp = SkinTemplate.build(this, skinArt)
                 contentResolver.openOutputStream(uri)!!.use { out ->
                     bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
                 }
@@ -493,27 +495,30 @@ class SettingsActivity : Activity() {
      * sichern und bemalen, dann das fertige Bild waehlen. Nur so weiss der
      * Benutzer, wo Bildschirm und Knoepfe liegen.
      */
-    private fun pickSkin(big: Boolean) {
-        skinBig = big
+    private fun pickSkin(art: EggRenderer.Art) {
+        skinArt = art
         val i = Intent(Intent.ACTION_OPEN_DOCUMENT)
             .addCategory(Intent.CATEGORY_OPENABLE).setType("image/*")
         startActivityForResult(i, REQ_SKIN)
     }
 
-    private fun saveTemplate(big: Boolean) {
-        skinBig = big
+    private fun saveTemplate(art: EggRenderer.Art) {
+        skinArt = art
         val i = Intent(Intent.ACTION_CREATE_DOCUMENT)
             .addCategory(Intent.CATEGORY_OPENABLE).setType("image/png")
             .putExtra(
                 Intent.EXTRA_TITLE,
-                if (big) "tamaemu-skin-large.png" else "tamaemu-skin-compact.png"
+                when (art) {
+                    EggRenderer.Art.GROSS -> "tamaemu-skin-large.png"
+                    EggRenderer.Art.HOCH -> "tamaemu-skin-tall.png"
+                    else -> "tamaemu-skin-compact.png"
+                }
             )
         startActivityForResult(i, REQ_TEMPLATE)
     }
 
     private fun resetSkins() {
-        EmuFiles.skin(this, false).delete()
-        EmuFiles.skin(this, true).delete()
+        for (a in EggRenderer.Art.values()) EmuFiles.skin(this, a).delete()
         EmuWidgetProvider.renderWidgets(this, force = true)
         toast(getString(R.string.done))
     }

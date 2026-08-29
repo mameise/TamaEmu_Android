@@ -31,8 +31,9 @@ open class EmuWidgetProvider : AppWidgetProvider() {
             val mgr = AppWidgetManager.getInstance(ctx)
             val small = mgr.getAppWidgetIds(ComponentName(ctx, EmuWidgetProvider::class.java))
             val large = mgr.getAppWidgetIds(ComponentName(ctx, EmuWidgetBigProvider::class.java))
+            val tall = mgr.getAppWidgetIds(ComponentName(ctx, EmuWidgetTallProvider::class.java))
             val plain = mgr.getAppWidgetIds(ComponentName(ctx, EmuWidgetPlainProvider::class.java))
-            if (small.isEmpty() && large.isEmpty() && plain.isEmpty()) return
+            if (small.isEmpty() && large.isEmpty() && tall.isEmpty() && plain.isEmpty()) return
             val warm = EmuNative.isLoaded()
             if (warm) {
                 val n = EmuNative.frame(px)
@@ -40,8 +41,9 @@ open class EmuWidgetProvider : AppWidgetProvider() {
                 lastFrame = n
                 EggRenderer.pushPixels(px)
             }
-            for (id in small) draw(ctx, mgr, id, warm, false)
-            for (id in large) draw(ctx, mgr, id, warm, true)
+            for (id in small) draw(ctx, mgr, id, warm, EggRenderer.Art.KOMPAKT)
+            for (id in large) draw(ctx, mgr, id, warm, EggRenderer.Art.GROSS)
+            for (id in tall) draw(ctx, mgr, id, warm, EggRenderer.Art.HOCH)
             for (id in plain) drawPlain(ctx, mgr, id, warm)
         }
 
@@ -84,12 +86,12 @@ open class EmuWidgetProvider : AppWidgetProvider() {
         }
 
         private fun draw(ctx: Context, mgr: AppWidgetManager, id: Int,
-                         warm: Boolean, big: Boolean) {
+                         warm: Boolean, art: EggRenderer.Art) {
             val bmp = if (warm) {
                 val (w, h) = sizePx(ctx, mgr, id)
-                EggRenderer.renderEgg(ctx, w, h, big)
+                EggRenderer.renderEgg(ctx, w, h, art)
             } else null
-            mgr.updateAppWidget(id, buildViews(ctx, warm, bmp, big))
+            mgr.updateAppWidget(id, buildViews(ctx, warm, bmp, art))
         }
 
         /** Aktuelle Widget-Groesse in Pixeln (Hochformat), gedeckelt. */
@@ -108,9 +110,12 @@ open class EmuWidgetProvider : AppWidgetProvider() {
         }
 
         private fun buildViews(ctx: Context, warm: Boolean, bmp: Bitmap?,
-                               big: Boolean = false): RemoteViews {
-            val rv = RemoteViews(ctx.packageName,
-                if (big) R.layout.widget_egg_big else R.layout.widget_egg)
+                               art: EggRenderer.Art = EggRenderer.Art.KOMPAKT): RemoteViews {
+            val rv = RemoteViews(ctx.packageName, when (art) {
+                EggRenderer.Art.GROSS -> R.layout.widget_egg_big
+                EggRenderer.Art.HOCH -> R.layout.widget_egg_tall
+                else -> R.layout.widget_egg
+            })
             rv.setTextViewText(R.id.egg_hint, hinweis(ctx))
             if (warm && bmp != null) {
                 rv.setViewVisibility(R.id.egg_image, android.view.View.VISIBLE)
@@ -201,6 +206,13 @@ class EmuWidgetBigProvider : EmuWidgetProvider()
  * Dritte Ausfuehrung: ohne Ei. Nur der Bildschirm, darunter die drei Knoepfe.
  * Fuer alle, die es schlicht moegen oder wenig Platz haben.
  */
+/**
+ * Hochformat, zwei Zellen breit und drei hoch. Der Bildschirm bleibt so gross
+ * wie in der kompakten Ausfuehrung - das laesst Platz fuer ein Gehaeuse, etwa
+ * das Foto eines echten Geraets.
+ */
+class EmuWidgetTallProvider : EmuWidgetProvider()
+
 class EmuWidgetPlainProvider : EmuWidgetProvider()
 
 /** Nach dem Neustart des Handys wieder mitlaufen. */

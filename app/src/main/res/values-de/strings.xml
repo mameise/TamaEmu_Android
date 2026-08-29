@@ -138,6 +138,9 @@
     <string name="fullscreen_hint">Vollbild blendet Titel- und Systemleisten aus und gibt dem Bildschirm das ganze Fenster. „Pixel scharf halten“ entscheidet, wie skaliert wird: an bleibt jeder emulierte Punkt gleich groß – knackig, aber mit Rand; aus füllt das Bild die Fläche, auf einem Handheld deutlich größer, dafür sind manche Punkte etwas breiter als andere. Quadratisch bleibt es in beiden Fällen, verzerrt wird also nie.</string>
     <string name="sharp_px">Pixel scharf halten: %s</string>
     <string name="widget_closed">TamaEmu ist geschlossen.\nTippen zum Starten.</string>
+    <string name="skin_pick_tall">Eigenes Bild verwenden (hohes Widget)</string>
+    <string name="skin_template_tall">Vorlage sichern (hoch)</string>
+    <string name="widget_desc_tall">TamaEmu im hohen Ei</string>
     <string name="on">an</string>
     <string name="off">aus</string>
 

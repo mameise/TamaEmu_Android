@@ -140,6 +140,9 @@
     <string name="fullscreen_hint">Fullscreen drops the title and system bars and gives the screen the whole window. „Keep pixels sharp“ decides how it is scaled: on, every emulated pixel stays the same size, which is crisp but leaves a border; off, the picture fills the area, which is much larger on a handheld but makes some pixels a touch wider than others. It stays square either way, so nothing is ever distorted.</string>
     <string name="sharp_px">Keep pixels sharp: %s</string>
     <string name="widget_closed">TamaEmu is closed.\nTap to start it again.</string>
+    <string name="skin_pick_tall">Use own image (tall widget)</string>
+    <string name="skin_template_tall">Save template (tall)</string>
+    <string name="widget_desc_tall">TamaEmu in a tall egg</string>
     <string name="on">on</string>
     <string name="off">off</string>
 

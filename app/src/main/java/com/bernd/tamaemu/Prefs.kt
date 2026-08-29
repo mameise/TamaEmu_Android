@@ -80,9 +80,14 @@ object EmuFiles {
     fun ram(c: Context, dev: String): File = File(c.filesDir, "$dev.sav.ram")
     fun hasRom(c: Context) = rom(c).length() > 0x1000
     fun ramSnap(c: Context, slot: Int): File = File(c.filesDir, "ramsnap${slot + 1}.bin")
-    /** Eigenes Widget-Bild des Benutzers (klein bzw. gross). */
-    fun skin(c: Context, big: Boolean): File =
-        File(c.filesDir, if (big) "skin_big.png" else "skin_small.png")
+    /** Eigenes Widget-Bild des Benutzers, je Ausfuehrung. */
+    fun skin(c: Context, art: EggRenderer.Art): File = File(
+        c.filesDir, when (art) {
+            EggRenderer.Art.GROSS -> "skin_big.png"
+            EggRenderer.Art.HOCH -> "skin_tall.png"
+            else -> "skin_small.png"      // Name beibehalten, damit vorhandene Bilder bleiben
+        }
+    )
 
     /** Vollstaendiger Zustand; wird nach einem App-Update verworfen. */
     fun state(c: Context, device: String): File = File(c.filesDir, "$device.state")

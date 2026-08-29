@@ -215,6 +215,7 @@ class EmuService : Service() {
                 EmuNative.stop()
                 EmuNative.unload()
                 bootCore(applicationContext)
+                startSound()      // falls der Tonfaden zwischendurch endete
             }
             ACTION_RESTART -> handler.post {
                 EmuNative.persist(true)
@@ -264,6 +265,34 @@ class EmuService : Service() {
      * Samples; AudioTrack.write blockiert bufferweise und taktet die Schleife.
      * Aus dem Piezo kommt ein Rechteck, kein Sinus.
      */
+    /**
+     * Legt die Tonausgabe an. Als eigene Funktion, damit sie sich nach einem
+     * Fehler neu aufbauen laesst - der Puffer fasst acht Bloecke, weil der
+     * Emulator in Schueben von 1/60 s liefert und die Ausgabe alle 10 ms holt.
+     */
+    private fun baueTrack(sr: Int, blk: Int): AudioTrack? = runCatching {
+        val min = AudioTrack.getMinBufferSize(
+            sr, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
+        )
+        AudioTrack.Builder()
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_GAME)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+            )
+            .setAudioFormat(
+                AudioFormat.Builder()
+                    .setSampleRate(sr)
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .build()
+            )
+            .setTransferMode(AudioTrack.MODE_STREAM)
+            .setBufferSizeInBytes(maxOf(min, blk * 2 * 8))
+            .build()
+    }.getOrNull()
+
     private fun startSound() {
         if (sndRun) return
         sndRun = true
@@ -271,32 +300,8 @@ class EmuService : Service() {
         sndThread = Thread {
             val sr = 48000                    // wie in der Desktop-Fassung
             val blk = 480                     // 10 ms je Durchgang
-            val min = AudioTrack.getMinBufferSize(
-                sr, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
-            )
-            val track = runCatching {
-                AudioTrack.Builder()
-                    .setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_GAME)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .build()
-                    )
-                    .setAudioFormat(
-                        AudioFormat.Builder()
-                            .setSampleRate(sr)
-                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                            .build()
-                    )
-                    .setTransferMode(AudioTrack.MODE_STREAM)
-                    // Groesserer Puffer: der Emulator liefert in Schueben von
-                    // 1/60 s, die Ausgabe holt alle 10 ms. Acht Bloecke fangen
-                    // das ab, ohne dass der Ton spuerbar nachhinkt.
-                    .setBufferSizeInBytes(maxOf(min, blk * 2 * 8))
-                    .build()
-            }.getOrNull() ?: run { sndRun = false; return@Thread }
-
+            var track = baueTrack(sr, blk) ?: run { sndRun = false; return@Thread }
+            var fehler = 0
             EmuNative.audioStart(sr)
             // Vorrat sammeln, bevor die Ausgabe anlaeuft: rund 150 ms. Weniger
             // hiess, dass jeder Schub der Emulation knapp reichte.
@@ -331,10 +336,35 @@ class EmuService : Service() {
                     Thread.sleep(2); tries++
                 }
                 EmuNative.audioPull(buf, blk)
-                try { track.write(buf, 0, blk) } catch (_: Throwable) { break }
+
+                /*
+                 * Schreiben kann fehlschlagen, ohne zu werfen: AudioTrack gibt
+                 * dann einen negativen Fehlerwert zurueck. Frueher lief die
+                 * Schleife danach ewig weiter und schrieb ins Leere - der Ton
+                 * war weg, bis der Prozess neu startete. Jetzt wird die Ausgabe
+                 * neu aufgebaut.
+                 */
+                val n = try { track.write(buf, 0, blk) } catch (_: Throwable) { -1 }
+                if (n < 0) {
+                    fehler++
+                    android.util.Log.w("tamaemu", "[ton] Ausgabe meldet $n, baue neu ($fehler)")
+                    runCatching { track.stop() }
+                    runCatching { track.release() }
+                    if (fehler > 5) break
+                    track = baueTrack(sr, blk) ?: break
+                    EmuNative.audioStart(sr)
+                    track.play()
+                    vol = -1
+                } else if (fehler > 0 && n == blk) {
+                    fehler = 0
+                }
             }
             runCatching { track.stop() }
             runCatching { track.release() }
+            // Wichtig: freigeben, damit startSound() den Faden wieder anlegen
+            // kann. Frueher blieb sndRun auf true stehen und der Ton war
+            // dauerhaft verloren.
+            sndRun = false
         }.also { it.isDaemon = true; it.start() }
     }
 

@@ -21,13 +21,24 @@ import android.graphics.RectF
  */
 object SkinTemplate {
 
-    /** @param big Vorlage fuer die grosse Ausfuehrung (sonst die kompakte). */
-    fun build(ctx: Context, big: Boolean, size: Int = if (big) 768 else 512): Bitmap {
-        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    /**
+     * @param art Welche Ausfuehrung. Das Hochformat bekommt eine hochformatige
+     *            Vorlage (2:3), damit beim Ziehen auf die Widget-Groesse nichts
+     *            verzerrt.
+     */
+    fun build(ctx: Context, art: EggRenderer.Art): Bitmap {
+        val w = if (art == EggRenderer.Art.GROSS) 768 else 512
+        val h = when (art) {
+            EggRenderer.Art.GROSS -> 768
+            EggRenderer.Art.HOCH -> 768
+            else -> 512
+        }
+        val size = minOf(w, h)
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
         cv.drawColor(Color.WHITE)
 
-        val g = EggRenderer.geo(size, size, big)
+        val g = EggRenderer.geo(w, h, art)
         val p = Paint(Paint.ANTI_ALIAS_FLAG)
         val strich = maxOf(2f, size * 0.005f)
 
@@ -78,8 +89,12 @@ object SkinTemplate {
         t.color = Color.rgb(0x99, 0x99, 0x99)
         t.textSize = size * 0.026f
         cv.drawText(
-            if (big) "TamaEmu skin template - large" else "TamaEmu skin template - compact",
-            size / 2f, size * 0.978f, t
+            when (art) {
+                EggRenderer.Art.GROSS -> "TamaEmu skin template - large"
+                EggRenderer.Art.HOCH -> "TamaEmu skin template - tall"
+                else -> "TamaEmu skin template - compact"
+            },
+            w / 2f, h * 0.978f, t
         )
         return bmp
     }

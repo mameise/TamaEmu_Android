@@ -110,6 +110,13 @@ object EggRenderer {
      *             werden kleiner. Fuer die grosse Widget-Ausfuehrung.
      */
     /** Ergebnis der Geometrieberechnung: alles liegt garantiert im Ei. */
+    /**
+     * Ausfuehrung eines Ei-Widgets. HOCH rechnet wie KOMPAKT, deckelt den
+     * Bildschirm aber auf die Groesse, die er bei quadratischem Widget haette -
+     * so bleibt im Hochformat mehr Ei sichtbar, statt dass der Schirm mitwaechst.
+     */
+    enum class Art { KOMPAKT, GROSS, HOCH }
+
     /** Alle Masse eines Widgets in Pixeln - fuer das Ei UND fuer die Vorlage. */
     class Geo(
         val cx: Float, val cy: Float, val a: Float, val b: Float,
@@ -125,7 +132,8 @@ object EggRenderer {
      * Seitenlaenge eingeschachtelt und jedes Mal geprueft, ob die Ecken noch in
      * der Ellipse liegen - mitsamt Rahmen und etwas Sicherheitsabstand.
      */
-    fun geo(w: Int, h: Int, big: Boolean): Geo {
+    fun geo(w: Int, h: Int, art: Art): Geo {
+        val big = art == Art.GROSS
         val mn = minOf(w, h).toFloat()
         val m = mn * 0.03f
         val cx = w / 2f
@@ -195,6 +203,14 @@ object EggRenderer {
             val y = place(mid)
             if (y == null) hi = mid else { bestSide = mid; bestY = y; lo = mid }
         }
+        if (art == Art.HOCH) {
+            /* So gross wie bei quadratischem Widget gleicher Breite. */
+            val deckel = geo(w, w, Art.KOMPAKT).side
+            if (bestSide > deckel) {
+                bestSide = deckel
+                bestY = minOf(cy, botLimit - bestSide / 2f)
+            }
+        }
         return Geo(cx, cy, a, b, bestSide, bestY, yb, br, dx, frame)
     }
 
@@ -215,22 +231,22 @@ object EggRenderer {
      */
 
     /** Eigenes Bild, falls der Benutzer eines hinterlegt hat. */
-    private fun skinBitmap(ctx: Context, big: Boolean): Bitmap? {
-        val f = EmuFiles.skin(ctx, big)
+    private fun skinBitmap(ctx: Context, art: Art): Bitmap? {
+        val f = EmuFiles.skin(ctx, art)
         if (!f.exists()) return null
         return runCatching { BitmapFactory.decodeFile(f.absolutePath) }.getOrNull()
     }
 
     @Synchronized
-    fun renderSkin(ctx: Context, w: Int, h: Int, big: Boolean): Bitmap? {
-        val skin = skinBitmap(ctx, big) ?: return null
+    fun renderSkin(ctx: Context, w: Int, h: Int, art: Art): Bitmap? {
+        val skin = skinBitmap(ctx, art) ?: return null
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
         val glatt = Paint(Paint.FILTER_BITMAP_FLAG)
         cv.drawBitmap(skin, Rect(0, 0, skin.width, skin.height), Rect(0, 0, w, h), glatt)
 
         /* Bildschirm genau dort und genau so gross wie beim Ei. */
-        val g = geo(w, h, big)
+        val g = geo(w, h, art)
         val s = g.side
         val left = (g.cx - s / 2f).toInt()
         val top = (g.ys - s / 2f).toInt()
@@ -244,14 +260,14 @@ object EggRenderer {
      *             kleiner, dadurch bleibt mehr Platz fuer den Schirm.
      */
     @Synchronized
-    fun renderEgg(ctx: Context, w: Int, h: Int, big: Boolean = false): Bitmap {
-        renderSkin(ctx, w, h, big)?.let { return it }   // eigenes Bild geht vor
+    fun renderEgg(ctx: Context, w: Int, h: Int, art: Art = Art.KOMPAKT): Bitmap {
+        renderSkin(ctx, w, h, art)?.let { return it }   // eigenes Bild geht vor
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
         val p = Paint(Paint.ANTI_ALIAS_FLAG)
         val shell = EGG_SHELL[ctx.eggColor.coerceIn(0, EGG_SHELL.size - 1)]
         val mn = minOf(w, h).toFloat()
-        val g = geo(w, h, big)
+        val g = geo(w, h, art)
 
         // Ei-Koerper
         val body = RectF(g.cx - g.a, g.cy - g.b, g.cx + g.a, g.cy + g.b)
