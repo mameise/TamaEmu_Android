@@ -50,8 +50,21 @@ open class EmuWidgetProvider : AppWidgetProvider() {
          * echte Schaltflaechen im Layout. Dadurch bleiben sie auf jedem
          * Startbildschirm gut treffbar, egal wie klein das Widget ist.
          */
+        /*
+         * Texte im Widget muessen wir SELBST setzen. Ein Widget wird vom
+         * Startbildschirm dargestellt, und der loest @string mit der
+         * SYSTEMSPRACHE auf - die in der App gewaehlte Sprache bliebe sonst
+         * wirkungslos. Deshalb hier ueber den umhuellten Zusammenhang.
+         */
+        private fun hinweis(ctx: Context): String {
+            val l = LocaleHelper.wrap(ctx)
+            return if (ctx.userQuit) l.getString(R.string.widget_closed)
+                   else l.getString(R.string.import_hint)
+        }
+
         private fun drawPlain(ctx: Context, mgr: AppWidgetManager, id: Int, warm: Boolean) {
             val rv = RemoteViews(ctx.packageName, R.layout.widget_plain)
+            rv.setTextViewText(R.id.plain_hint, hinweis(ctx))
             if (warm) {
                 val (w, h) = sizePx(ctx, mgr, id)
                 rv.setViewVisibility(R.id.plain_image, android.view.View.VISIBLE)
@@ -98,6 +111,7 @@ open class EmuWidgetProvider : AppWidgetProvider() {
                                big: Boolean = false): RemoteViews {
             val rv = RemoteViews(ctx.packageName,
                 if (big) R.layout.widget_egg_big else R.layout.widget_egg)
+            rv.setTextViewText(R.id.egg_hint, hinweis(ctx))
             if (warm && bmp != null) {
                 rv.setViewVisibility(R.id.egg_image, android.view.View.VISIBLE)
                 rv.setViewVisibility(R.id.egg_hint, android.view.View.GONE)

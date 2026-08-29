@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -59,7 +60,17 @@ class MainActivity : Activity() {
     }
 
     override fun onCreate(s: Bundle?) {
+        /*
+         * Vollbild: ohne Titelleiste und ohne Systemleisten. Das muss VOR
+         * setContentView geschehen, sonst ist der Titel schon angelegt.
+         * Umschalten laeuft ueber recreate(), wie bei der Sprache.
+         */
+        if (this.fullscreen) {
+            requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+            actionBar?.hide()
+        }
         super.onCreate(s)
+        if (this.fullscreen) hideSystemBars()
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(Color.rgb(0x18, 0x1A, 0x1C))
@@ -113,7 +124,7 @@ class MainActivity : Activity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                bottomMargin = (32 * d).toInt()
+                bottomMargin = (if (this@MainActivity.fullscreen) 8 else 32) * d.toInt()
                 leftMargin = (8 * d).toInt(); rightMargin = (8 * d).toInt()
             }
         }
@@ -160,6 +171,27 @@ class MainActivity : Activity() {
     }
 
     private fun openSettings() = startActivity(Intent(this, SettingsActivity::class.java))
+
+    /** Statusleiste und Navigationsleiste ausblenden, Wischen holt sie kurz zurueck. */
+    private fun hideSystemBars() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            window.insetsController?.let {
+                it.hide(android.view.WindowInsets.Type.systemBars())
+                it.systemBarsBehavior =
+                    android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                View.SYSTEM_UI_FLAG_FULLSCREEN
+        }
+    }
 
     private fun speedButton(label: String, onClick: () -> Unit): Button = Button(this).apply {
         text = label
@@ -219,6 +251,8 @@ class MainActivity : Activity() {
         if (EmuFiles.hasRom(this)) {
             if (this.bgRun) EmuService.start(this) else EmuService.bootCore(this)
         }
+        panel.fillMode = this.fullscreen && !this.sharpPixels
+        if (this.fullscreen) hideSystemBars()
         speedRow.visibility = if (this.speedOnUi) View.VISIBLE else View.GONE
         btnRow.visibility = if (this.showButtons) View.VISIBLE else View.GONE
         // Das Zahnrad braucht es nur, wenn die Knopfreihe (mit ihrem eigenen
@@ -246,12 +280,23 @@ class MainActivity : Activity() {
         private val dst = Rect()
         private val bezel = Paint().apply { color = Color.rgb(0x2E, 0x31, 0x2E) }
 
+        /**
+         * Im Vollbild wird die Flaeche ausgenutzt, sonst ganzzahlig skaliert.
+         *
+         * Ganzzahlig haelt die Pixel gleich gross und scharf, verschenkt aber
+         * bis zur naechsten Stufe viel Platz - auf einem 640x480-Handheld
+         * waeren das 384 statt 480 Punkten. Das Seitenverhaeltnis bleibt in
+         * beiden Faellen quadratisch, es wird also nie verzerrt.
+         */
+        var fillMode = false
+
         override fun onDraw(canvas: Canvas) {
             val side = minOf(width, height)
             if (side <= 0) return
             var s = side / EmuNative.W
             if (s < 1) s = 1
-            val d = EmuNative.W * s
+            var d = EmuNative.W * s
+            if (fillMode) d = side
             val left = (width - d) / 2
             val top = (height - d) / 2
             canvas.drawRect(

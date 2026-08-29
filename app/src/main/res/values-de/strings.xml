@@ -134,6 +134,10 @@
     <string name="skin_reset">Zur\u00fcck zum Ei</string>
     <string name="skin_bad">Diese Datei lie\u00df sich nicht als Bild lesen.</string>
     <string name="skin_hint">Du kannst das Ei durch ein eigenes Bild ersetzen. Sichere zuerst eine Vorlage – sie zeigt Umriss, Bildschirm und die drei Knöpfe genau dort, wo die App sie zeichnet –, male dein Gehäuse um diese Markierungen herum und wähle das fertige Bild hier aus. Der Bildschirm behält Größe und Lage wie beim Ei. Die Vorlagen sind quadratisch, weil das Bild auf die Widget-Größe gezogen wird; andere Seitenverhältnisse verzerren. PNG mit Transparenz geht.</string>
+    <string name="fullscreen">Vollbild: %s</string>
+    <string name="fullscreen_hint">Vollbild blendet Titel- und Systemleisten aus und gibt dem Bildschirm das ganze Fenster. „Pixel scharf halten“ entscheidet, wie skaliert wird: an bleibt jeder emulierte Punkt gleich groß – knackig, aber mit Rand; aus füllt das Bild die Fläche, auf einem Handheld deutlich größer, dafür sind manche Punkte etwas breiter als andere. Quadratisch bleibt es in beiden Fällen, verzerrt wird also nie.</string>
+    <string name="sharp_px">Pixel scharf halten: %s</string>
+    <string name="widget_closed">TamaEmu ist geschlossen.\nTippen zum Starten.</string>
     <string name="on">an</string>
     <string name="off">aus</string>
 

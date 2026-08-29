@@ -136,6 +136,10 @@
     <string name="skin_reset">Back to the egg</string>
     <string name="skin_bad">That file could not be read as an image.</string>
     <string name="skin_hint">You can replace the egg with your own artwork. Save a template first - it marks the egg outline, the screen and the three buttons exactly where the app draws them - then paint your case around those marks and pick the finished image here. The screen keeps the same size and position as with the egg. Templates are square because the image is stretched to the widget, so other shapes will distort. PNG with transparency works.</string>
+    <string name="fullscreen">Fullscreen: %s</string>
+    <string name="fullscreen_hint">Fullscreen drops the title and system bars and gives the screen the whole window. „Keep pixels sharp“ decides how it is scaled: on, every emulated pixel stays the same size, which is crisp but leaves a border; off, the picture fills the area, which is much larger on a handheld but makes some pixels a touch wider than others. It stays square either way, so nothing is ever distorted.</string>
+    <string name="sharp_px">Keep pixels sharp: %s</string>
+    <string name="widget_closed">TamaEmu is closed.\nTap to start it again.</string>
     <string name="on">on</string>
     <string name="off">off</string>
 

@@ -96,6 +96,12 @@ class SettingsActivity : Activity() {
         }
 
         header(R.string.sec_controls)
+        stateButton({ getString(R.string.fullscreen, onOff(this.fullscreen)) }) {
+            this.fullscreen = !this.fullscreen
+        }
+        stateButton({ getString(R.string.sharp_px, onOff(this.sharpPixels)) }) {
+            this.sharpPixels = !this.sharpPixels
+        }
         stateButton({ getString(R.string.speed_on_ui, onOff(speedOnUi)) }) {
             speedOnUi = !speedOnUi
         }
@@ -105,6 +111,7 @@ class SettingsActivity : Activity() {
         stateButton({ getString(R.string.gamepad, onOff(gamepad)) }) { gamepad = !gamepad }
         button(R.string.pad_config) { padDialog() }
         hint(R.string.controls_hint)
+        hint(R.string.fullscreen_hint)
 
         header(R.string.sec_sound)
         stateButton({ getString(R.string.sound_lbl, onOff(sound)) }) { sound = !sound }

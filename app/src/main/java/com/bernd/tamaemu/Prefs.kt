@@ -37,6 +37,17 @@ var Context.speedOnUi: Boolean
 /** A/B/C-Knoepfe auf dem Hauptbildschirm zeigen (aus bei reiner Gamepad-Bedienung). */
 var Context.showButtons: Boolean
     get() = emuSp().getBoolean("showbtns", true); set(v) = putB("showbtns", v)
+/** Vollbild: ohne Titel- und Systemleisten, Bild so gross wie moeglich. */
+var Context.fullscreen: Boolean
+    get() = emuSp().getBoolean("fullscreen", false); set(v) = putB("fullscreen", v)
+
+/**
+ * Im Vollbild: Pixel gleich gross halten (ganzzahlig skalieren) statt die
+ * Flaeche auszunutzen. Scharf, aber kleiner - beides hat seine Berechtigung.
+ */
+var Context.sharpPixels: Boolean
+    get() = emuSp().getBoolean("sharppx", true); set(v) = putB("sharppx", v)
+
 /** Bedienung ueber ein angeschlossenes Gamepad. */
 var Context.gamepad: Boolean
     get() = emuSp().getBoolean("gamepad", false); set(v) = putB("gamepad", v)
