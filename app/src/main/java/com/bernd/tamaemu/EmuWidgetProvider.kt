@@ -26,12 +26,13 @@ open class EmuWidgetProvider : AppWidgetProvider() {
         private val px = IntArray(EmuNative.W * EmuNative.H)
         private var lastFrame = 0L
 
-        /** Beide Ausfuehrungen in ihrer echten Groesse zeichnen. */
+        /** Alle drei Ausfuehrungen in ihrer echten Groesse zeichnen. */
         fun renderWidgets(ctx: Context, force: Boolean = false) {
             val mgr = AppWidgetManager.getInstance(ctx)
             val small = mgr.getAppWidgetIds(ComponentName(ctx, EmuWidgetProvider::class.java))
             val large = mgr.getAppWidgetIds(ComponentName(ctx, EmuWidgetBigProvider::class.java))
-            if (small.isEmpty() && large.isEmpty()) return
+            val plain = mgr.getAppWidgetIds(ComponentName(ctx, EmuWidgetPlainProvider::class.java))
+            if (small.isEmpty() && large.isEmpty() && plain.isEmpty()) return
             val warm = EmuNative.isLoaded()
             if (warm) {
                 val n = EmuNative.frame(px)
@@ -41,6 +42,31 @@ open class EmuWidgetProvider : AppWidgetProvider() {
             }
             for (id in small) draw(ctx, mgr, id, warm, false)
             for (id in large) draw(ctx, mgr, id, warm, true)
+            for (id in plain) drawPlain(ctx, mgr, id, warm)
+        }
+
+        /**
+         * Schlichte Ausfuehrung: nur der Bildschirm als Bild, die Knoepfe sind
+         * echte Schaltflaechen im Layout. Dadurch bleiben sie auf jedem
+         * Startbildschirm gut treffbar, egal wie klein das Widget ist.
+         */
+        private fun drawPlain(ctx: Context, mgr: AppWidgetManager, id: Int, warm: Boolean) {
+            val rv = RemoteViews(ctx.packageName, R.layout.widget_plain)
+            if (warm) {
+                val (w, h) = sizePx(ctx, mgr, id)
+                rv.setViewVisibility(R.id.plain_image, android.view.View.VISIBLE)
+                rv.setViewVisibility(R.id.plain_hint, android.view.View.GONE)
+                rv.setImageViewBitmap(R.id.plain_image, EggRenderer.renderPlain(w, (h * 0.78f).toInt()))
+            } else {
+                rv.setViewVisibility(R.id.plain_image, android.view.View.GONE)
+                rv.setViewVisibility(R.id.plain_hint, android.view.View.VISIBLE)
+            }
+            rv.setOnClickPendingIntent(R.id.plain_a, broadcast(ctx, ACT_A, 21))
+            rv.setOnClickPendingIntent(R.id.plain_b, broadcast(ctx, ACT_B, 22))
+            rv.setOnClickPendingIntent(R.id.plain_c, broadcast(ctx, ACT_C, 23))
+            rv.setOnClickPendingIntent(R.id.plain_image, openAppIntent(ctx))
+            rv.setOnClickPendingIntent(R.id.plain_hint, openAppIntent(ctx))
+            mgr.updateAppWidget(id, rv)
         }
 
         private fun draw(ctx: Context, mgr: AppWidgetManager, id: Int,
@@ -155,6 +181,12 @@ open class EmuWidgetProvider : AppWidgetProvider() {
  * Ei flacher gezeichnet, damit das Tama mehr Platz bekommt.
  */
 class EmuWidgetBigProvider : EmuWidgetProvider()
+
+/**
+ * Dritte Ausfuehrung: ohne Ei. Nur der Bildschirm, darunter die drei Knoepfe.
+ * Fuer alle, die es schlicht moegen oder wenig Platz haben.
+ */
+class EmuWidgetPlainProvider : EmuWidgetProvider()
 
 /** Nach dem Neustart des Handys wieder mitlaufen. */
 class BootReceiver : android.content.BroadcastReceiver() {

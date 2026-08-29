@@ -37,6 +37,13 @@ static void ioram_w32(Emu *e, uint32_t a, uint32_t v)
     p[0] = (uint8_t)v; p[1] = (uint8_t)(v >> 8); p[2] = (uint8_t)(v >> 16); p[3] = (uint8_t)(v >> 24);
 }
 
+/* Nur der uhrenabhaengige Teil: rtc_tick rechnet Zyklen mit der aktuellen
+ * Frequenz in Sekunden um und muss deshalb vor jedem Frequenzwechsel
+ * abgerechnet werden. Die uebrigen Aufgaben in periph_tick haengen nicht an
+ * der Frequenz und bleiben aussen vor. */
+static void rtc_tick(Emu *e, uint32_t cycles);
+static void periph_tick_clock(Emu *e, uint32_t cycles) { rtc_tick(e, cycles); }
+
 static void cmu_recalc(Emu *e)
 {
     Cmu *c = &e->cmu;
@@ -59,6 +66,23 @@ static void cmu_recalc(Emu *e)
     if (mclkdiv) f /= 2.0;
     if (f != c->mclk_hz) {
         static int logged;
+        /*
+         * ANPASSUNG (siehe CORE-CHANGES.md): angefallene Zyklen ABRECHNEN,
+         * BEVOR die Frequenz wechselt.
+         *
+         * periph_tick rechnet Zyklen mit der GERADE gueltigen Frequenz in
+         * Sekunden um. Wechselt die Frequenz mitten in einem Abschnitt, werden
+         * die vorher bei 18,43 MHz gelaufenen Zyklen mit 16 kHz bewertet - also
+         * um mehr als das Tausendfache zu hoch. Das Geraet schlaeft ein und
+         * wacht staendig kurz auf, deshalb summiert sich das: im Labor lief die
+         * Geraeteuhr im Schlaf 1,55-mal so schnell wie die Spielzeit, wach
+         * dagegen 1,05-mal.
+         */
+        if (e->cycles > e->last_tick) {
+            uint32_t offen = (uint32_t)(e->cycles - e->last_tick);
+            e->last_tick = e->cycles;
+            periph_tick_clock(e, offen);
+        }
         c->mclk_hz = f;
         if (e->core_id == 0 && (logged < 16 || e->io_log)) {
             fprintf(stderr, "[cmu] MCLK = %.4f MHz (src=%s sccr=%08x pllc=%08x, OSC3=%.4f MHz) pc=%08x\n",

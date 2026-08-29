@@ -2,6 +2,7 @@ package com.bernd.tamaemu
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -59,6 +60,43 @@ object EggRenderer {
     fun pushPixels(px: IntArray) {
         screenBmp.setPixels(px, 0, EmuNative.W, 0, 0, EmuNative.W, EmuNative.H)
     }
+
+    /**
+     * Nur der Bildschirm, mittig und ganzzahlig hochskaliert, auf durchsichtigem
+     * Grund - fuer das schlichte Widget ohne Ei. Die Knoepfe sind dort echte
+     * Schaltflaechen im Layout und nicht gezeichnet.
+     */
+    @Synchronized
+    fun renderPlain(w: Int, h: Int): Bitmap {
+        val bmp = Bitmap.createBitmap(maxOf(w, 8), maxOf(h, 8), Bitmap.Config.ARGB_8888)
+        val cv = Canvas(bmp)
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        val side = minOf(bmp.width, bmp.height)
+        val fr = maxOf(2f, side * 0.03f)
+        val frei = side - 2 * fr
+        /*
+         * Ganzzahlig skalieren haelt die Pixel gleich gross und scharf. Der
+         * Sprung von 1x auf 2x laesst aber bei mittleren Widget-Groessen viel
+         * Flaeche leer - bei 220 px waeren es nur 128 statt moeglicher 200.
+         * Deshalb: ganzzahlig bevorzugen, aber wenn dabei mehr als ein Viertel
+         * der Flaeche verschenkt wird, lieber genau ausfuellen.
+         */
+        var s = (frei / EmuNative.W).toInt()
+        if (s < 1) s = 1
+        var d = EmuNative.W * s
+        if (d < frei * 0.75f) d = frei.toInt()
+        val left = (bmp.width - d) / 2
+        val top = (bmp.height - d) / 2
+        p.color = Color.rgb(0x2E, 0x31, 0x2E)
+        cv.drawRoundRect(
+            RectF(left - fr, top - fr, left + d + fr, top + d + fr), fr, fr, p
+        )
+        dst2.set(left, top, left + d, top + d)
+        cv.drawBitmap(screenBmp, src, dst2, flat)
+        return bmp
+    }
+
+    private val dst2 = Rect()
 
     /** Nur der Bildschirm, ganzzahlig hochskaliert (Vollbild-App). */
     @Synchronized
@@ -159,12 +197,72 @@ object EggRenderer {
         return Geo(cx, cy, a, b, bestSide, bestY, yb, br, dx, frame)
     }
 
+    /*
+     * ---------------------------------------------------------------------
+     * Eigenes Widget-Bild
+     *
+     * Wer sein eigenes Gehaeuse zeichnen will, braucht feste Bezugspunkte.
+     * Deshalb liegen Bildschirm und Knoepfe beim eigenen Bild NICHT dort, wo
+     * die Ei-Rechnung sie hinlegt, sondern an festen Anteilen der Flaeche -
+     * dieselben, die auch die Vorlage zeigt und die die unsichtbaren
+     * Tap-Flaechen im Layout benutzen.
+     *
+     * Das Bild wird auf die Widget-Groesse GEZOGEN (nicht beschnitten), damit
+     * die Anteile immer stimmen. Ein Bild in anderem Seitenverhaeltnis wird
+     * also verzerrt - deshalb sind die Vorlagen quadratisch.
+     */
+    private fun schirmAnteil(big: Boolean) =
+        if (big) floatArrayOf(0.05f, 0.72f) else floatArrayOf(0.07f, 0.64f)
+
+    /** Bildschirmfeld in Pixeln fuer ein eigenes Bild. */
+    fun skinScreenRect(w: Int, h: Int, big: Boolean): Rect {
+        val a = schirmAnteil(big)
+        val oben = h * a[0]
+        val unten = h * a[1]
+        val seite = minOf(w * (if (big) 0.90f else 0.84f), unten - oben)
+        val left = ((w - seite) / 2f).toInt()
+        val top = (oben + (unten - oben - seite) / 2f).toInt()
+        return Rect(left, top, left + seite.toInt(), top + seite.toInt())
+    }
+
+    /** Mitten und Radius der drei Knoepfe fuer die Vorlage. */
+    fun skinButtons(w: Int, h: Int, big: Boolean): Triple<FloatArray, FloatArray, Float> {
+        /* Bei 0.885 stiess der untere Knopfrand in der grossen Ausfuehrung an
+         * die Bildkante (99 %). 0.86 laesst Luft, bleibt aber innerhalb des
+         * Tap-Bandes im Layout (78..99 %). */
+        val yBand = if (big) 0.86f else 0.805f
+        val r = minOf(w, h) * (if (big) 0.075f else 0.085f)
+        val xs = floatArrayOf(w / 6f, w / 2f, w * 5f / 6f)
+        val ys = floatArrayOf(h * yBand, h * yBand + r * 0.5f, h * yBand)
+        return Triple(xs, ys, r)
+    }
+
+    /** Eigenes Bild, falls der Benutzer eines hinterlegt hat. */
+    private fun skinBitmap(ctx: Context, big: Boolean): Bitmap? {
+        val f = EmuFiles.skin(ctx, big)
+        if (!f.exists()) return null
+        return runCatching { BitmapFactory.decodeFile(f.absolutePath) }.getOrNull()
+    }
+
+    @Synchronized
+    fun renderSkin(ctx: Context, w: Int, h: Int, big: Boolean): Bitmap? {
+        val skin = skinBitmap(ctx, big) ?: return null
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val cv = Canvas(bmp)
+        val glatt = Paint(Paint.FILTER_BITMAP_FLAG)
+        cv.drawBitmap(skin, Rect(0, 0, skin.width, skin.height), Rect(0, 0, w, h), glatt)
+        val r = skinScreenRect(w, h, big)
+        cv.drawBitmap(screenBmp, src, r, flat)
+        return bmp
+    }
+
     /**
      * @param big  groessere Bildflaeche: die Knoepfe ruecken tiefer und werden
      *             kleiner, dadurch bleibt mehr Platz fuer den Schirm.
      */
     @Synchronized
     fun renderEgg(ctx: Context, w: Int, h: Int, big: Boolean = false): Bitmap {
+        renderSkin(ctx, w, h, big)?.let { return it }   // eigenes Bild geht vor
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
         val p = Paint(Paint.ANTI_ALIAS_FLAG)

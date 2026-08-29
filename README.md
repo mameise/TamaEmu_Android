@@ -16,7 +16,10 @@ you when it needs attention.
 ## Features
 
 - Full-screen emulator with A/B/C buttons
-- Two home screen widgets, compact and large, with working buttons
+- Three home screen widgets with working buttons: compact, large, and a plain
+  one without the egg
+- Replace the egg with your own artwork — the app hands you a template showing
+  where the screen and buttons sit
 - Runs in the background as a foreground service
 - Lost game time is caught up **without ever setting the clock forward**, so
   the firmware sees every second and no care event is skipped
@@ -25,7 +28,17 @@ you when it needs attention.
 - Downloadable content (games, items, wallpapers) including slot management
 - Visits between two phones over Wi-Fi
 - Save data export and import
+- Gamepad support, with the buttons assigned by simply pressing them
 - English and German, switchable inside the app
+
+## Requirements
+
+- **Android 8.0 (API 26) or newer**
+- Built for **arm64-v8a, armeabi-v7a and x86_64**, so 32-bit devices and the
+  Android Studio emulator work too
+- The emulator runs an 18.4 MHz processor in real time. A phone from roughly
+  2018 onwards manages that comfortably; on much older hardware the Tama may
+  run slower than real life.
 
 ## Getting started
 
@@ -53,8 +66,18 @@ at one:
 GitHub Actions builds on every push (`.github/workflows/build.yml`) and puts
 the APK up as a build artifact. For a signed build, set four repository
 secrets: `KEYSTORE_BASE64` (the keystore, base64 encoded), `KEYSTORE_PASSWORD`,
-`KEY_ALIAS` and `KEY_PASSWORD`. Without them the workflow still builds, just
-with the debug key.
+`KEY_ALIAS` and `KEY_PASSWORD`. Without them — or if the encoding is not
+usable — the workflow still builds, just with the debug key, and says so in
+the log.
+
+Encoding the keystore on Windows, in **PowerShell** (not `cmd`, and not
+`certutil`, which adds header lines):
+
+    [Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\tama.keystore")) `
+        | Set-Content C:\temp\keystore.txt -NoNewline
+
+The result is one long line, roughly 3600 characters for a 2.7 KB keystore.
+Keep that file outside the repository.
 
 ## Licence and credits
 

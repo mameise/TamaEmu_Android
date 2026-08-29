@@ -9,6 +9,9 @@ local.properties
 *.iml
 /.idea/
 
+# Entwicklungsnotizen bleiben ausserhalb des Repositories
+docs/
+
 # Betriebssystem
 .DS_Store
 Thumbs.db

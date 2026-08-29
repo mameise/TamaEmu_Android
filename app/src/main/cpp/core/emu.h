@@ -54,7 +54,7 @@ typedef struct DeviceProfile {
 #define PS_IVRAM_BASE   0x00080000u
 #define PS_IVRAM_SIZE   0x00003000u   /* 12KB */
 #define PS_DSTRAM_BASE  0x00084000u
-#define PS_DSTRAM_SIZE  0x00000800u   /* 2KB */
+#define PS_DSTRAM_SIZE  0x00001000u   /* 4KB */
 #define PS_IO_BASE      0x00300000u
 #define PS_IO_END       0x00302000u
 #define PS_LCD_CMD_ADDR  0x00600000u
@@ -68,7 +68,7 @@ typedef struct DeviceProfile {
 /* Compile-time storage ceilings; device_check() rejects larger profiles. */
 #define A0RAM_MAX   0x00008000u
 #define IVRAM_MAX   0x00003000u
-#define DSTRAM_MAX  0x00000800u
+#define DSTRAM_MAX  0x00001000u
 #define IORAM_MAX   0x00002000u
 
 /* device.c */
@@ -211,12 +211,11 @@ typedef struct NfcPeer {
 #define LINK_COLL_HIST 64  /* recently released transmissions kept for overlap */
 #define LINK_ORG_N      8  /* clock-gap estimates, with spare slots for reconnects */
 /* Jitter and collision-reorder window. reorder_late reports insufficient lead. */
-/* Anpassung: von aussen setzbar. Ueber WLAN reichen 1500 us nicht,
- * siehe FINDINGS v12. */
+/* Anpassung: von aussen setzbar und zur Laufzeit aenderbar (siehe link.c).
+ * Ueber WLAN ist der richtige Wert vom Netz abhaengig - FINDINGS v12 und v28. */
 #ifndef LINK_LEAD_US
 #define LINK_LEAD_US 1500
 #endif
-/* Anpassung: zur Laufzeit einstellbar (siehe link.c). */
 void     link_set_lead_us(unsigned us);
 unsigned link_get_lead_us(void);
 /* Settle time comes from each record's byte time. */
@@ -481,6 +480,10 @@ StateResult state_load(Emu *e, const char *savpath, const char *build_id,
                        char *why, size_t whysz);
 int state_save(const Emu *e, const char *savpath, const char *build_id,
                char *why, size_t whysz);
+int state_encode(const Emu *e, const char *build_id, uint8_t **blob, size_t *blob_len,
+                 char *why, size_t whysz);
+StateResult state_decode(Emu *e, const uint8_t *blob, size_t blob_len,
+                         const char *build_id, char *why, size_t whysz);
 int state_sav_lock_acquire(const char *savpath, uintptr_t *token,
                            char *why, size_t whysz);
 void state_sav_lock_release(uintptr_t *token);

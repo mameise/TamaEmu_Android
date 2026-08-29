@@ -38,7 +38,7 @@
     <string name="speed_reset">Spieluhr zur\u00fccksetzen (x1)</string>
     <string name="speed_hint">Eine schnellere Spieluhr l\u00e4sst dein Tama schneller altern. Animationen und Ton bleiben normal. Stufen: 1 2 5 10 30 60 120 300 600.</string>
     <string name="stay_awake">Wachhalten: %s</string>
-    <string name="stay_awake_hint">Standardm\u00e4\u00dfig an. Das echte Ger\u00e4t schaltet den Bildschirm nach ein paar Sekunden ohne Tastendruck ab, was hier nicht gewollt ist. Nur abschalten, wenn du genau das nachstellen willst.</string>
+    <string name="stay_awake_hint">Standardm\u00e4\u00dfig an, und das sollte so bleiben. Das echte Ger\u00e4t schaltet den Bildschirm nach ein paar Sekunden ab, und im Schlaf l\u00e4uft seine Uhr im Emulator sp\u00fcrbar zu schnell \u2013 gemessen etwa 1,5-fach. Nur abschalten, wenn du das Schlafverhalten willst und mit der abweichenden Uhr leben kannst.</string>
 
     <string name="egg_color">Ei-Farbe: %s</string>
     <string name="widget_rate">Widget-Takt: %s</string>
@@ -116,6 +116,24 @@
 
     <string name="speed_ok">Tempo der Emulation: %d %% der Echtzeit.</string>
     <string name="speed_slow">Tempo der Emulation: %d %% der Echtzeit \u2013 dieses Handy kommt nicht ganz mit, dein Tama bewegt sich also langsamer als das echte Ger\u00e4t. Seine Uhr geht trotzdem richtig.</string>
+    <string name="sec_controls">Bedienung</string>
+    <string name="speed_on_ui">Tempo-Kn\u00f6pfe auf dem Hauptbildschirm: %s</string>
+    <string name="show_buttons">A/B/C-Kn\u00f6pfe auf dem Hauptbildschirm: %s</string>
+    <string name="gamepad">Bedienung per Gamepad: %s</string>
+    <string name="pad_config">Gamepad-Tasten belegen</string>
+    <string name="pad_press_a">Dr\u00fccke die Taste, die A sein soll.</string>
+    <string name="pad_press_b">Jetzt die Taste f\u00fcr B.</string>
+    <string name="pad_press_c">Und die Taste f\u00fcr C.</string>
+    <string name="pad_saved">Gespeichert: A = %1$s, B = %2$s, C = %3$s</string>
+    <string name="controls_hint">Mit angeschlossenem Gamepad lassen sich die Kn\u00f6pfe auf dem Bildschirm ausblenden und nur noch das Pad benutzen. Belegt wird durch Dr\u00fccken der gew\u00fcnschten Taste \u2013 keine Tastencodes zum Nachschlagen.</string>
+    <string name="widget_desc_plain">TamaEmu, schlicht \u2013 nur Bildschirm und Kn\u00f6pfe</string>
+    <string name="skin_pick_small">Eigenes Bild verwenden (kompaktes Widget)</string>
+    <string name="skin_pick_big">Eigenes Bild verwenden (gro\u00dfes Widget)</string>
+    <string name="skin_template_small">Vorlage sichern (kompakt)</string>
+    <string name="skin_template_big">Vorlage sichern (gro\u00df)</string>
+    <string name="skin_reset">Zur\u00fcck zum Ei</string>
+    <string name="skin_bad">Diese Datei lie\u00df sich nicht als Bild lesen.</string>
+    <string name="skin_hint">Du kannst das Ei durch ein eigenes Bild ersetzen. Sichere zuerst eine Vorlage \u2013 sie zeigt, wo Bildschirm und die drei Kn\u00f6pfe liegen \u2013, male dein Geh\u00e4use darum herum und w\u00e4hle das fertige Bild hier aus. Die Vorlagen sind quadratisch, weil das Bild auf die Widget-Gr\u00f6\u00dfe gezogen wird; andere Seitenverh\u00e4ltnisse verzerren. PNG mit Transparenz geht.</string>
     <string name="on">an</string>
     <string name="off">aus</string>
 

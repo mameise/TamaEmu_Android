@@ -40,7 +40,7 @@
     <string name="speed_reset">Reset game clock (x1)</string>
     <string name="speed_hint">A faster game clock makes your Tama age faster. Animations and sound stay at normal speed. Steps: 1 2 5 10 30 60 120 300 600.</string>
     <string name="stay_awake">Keep awake: %s</string>
-    <string name="stay_awake_hint">On by default. The real device turns its screen off after a few seconds without a button press, which is not wanted here. Turn this off only if you want that behaviour back.</string>
+    <string name="stay_awake_hint">On by default, and best left that way. The real device blanks its screen after a few seconds, and while it sleeps its clock runs noticeably fast in the emulator \u2013 measured at about 1.5x. Turn this off only if you want the sleeping behaviour and can live with the clock drifting.</string>
 
     <string name="egg_color">Egg colour: %s</string>
     <string name="widget_rate">Widget refresh: %s</string>
@@ -118,6 +118,24 @@
 
     <string name="speed_ok">Emulation speed: %d %% of real time.</string>
     <string name="speed_slow">Emulation speed: %d %% of real time \u2013 this phone cannot quite keep up, so your Tama moves slower than the real device. Its clock still keeps the right time.</string>
+    <string name="sec_controls">Controls</string>
+    <string name="speed_on_ui">Speed buttons on the main screen: %s</string>
+    <string name="show_buttons">A/B/C buttons on the main screen: %s</string>
+    <string name="gamepad">Gamepad control: %s</string>
+    <string name="pad_config">Assign gamepad buttons</string>
+    <string name="pad_press_a">Press the button you want to use for A.</string>
+    <string name="pad_press_b">Now the button for B.</string>
+    <string name="pad_press_c">And the button for C.</string>
+    <string name="pad_saved">Saved: A = %1$s, B = %2$s, C = %3$s</string>
+    <string name="controls_hint">With a gamepad connected you can hide the on-screen buttons and use the pad alone. Assigning works by pressing the button you want \u2013 no key codes to look up.</string>
+    <string name="widget_desc_plain">TamaEmu, plain \u2013 screen and buttons only</string>
+    <string name="skin_pick_small">Use own image (compact widget)</string>
+    <string name="skin_pick_big">Use own image (large widget)</string>
+    <string name="skin_template_small">Save template (compact)</string>
+    <string name="skin_template_big">Save template (large)</string>
+    <string name="skin_reset">Back to the egg</string>
+    <string name="skin_bad">That file could not be read as an image.</string>
+    <string name="skin_hint">You can replace the egg with your own artwork. Save a template first \u2013 it marks where the screen and the three buttons sit \u2013 then paint around those areas and pick the finished image here. The templates are square because the image is stretched to the widget, so any other shape will distort. PNG with transparency works.</string>
     <string name="on">on</string>
     <string name="off">off</string>
 

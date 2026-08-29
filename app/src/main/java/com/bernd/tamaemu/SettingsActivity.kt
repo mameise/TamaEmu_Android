@@ -17,10 +17,14 @@ class SettingsActivity : Activity() {
     private val REQ_SAVE_EXPORT = 102
     private val REQ_SAVE_IMPORT = 103
     private val REQ_DLC = 104
+    private val REQ_SKIN = 105
+    private val REQ_TEMPLATE = 106
+    private var skinBig = false
 
     private lateinit var box: LinearLayout
     private lateinit var romStatus: TextView
     private lateinit var visitStatus: TextView
+    private var speedButton: Button? = null
 
     override fun attachBaseContext(base: android.content.Context) {
         super.attachBaseContext(LocaleHelper.wrap(base))
@@ -57,9 +61,17 @@ class SettingsActivity : Activity() {
         hint(R.string.device_hint)
 
         header(R.string.sec_clock)
-        stateButton({ getString(R.string.speed_lbl, speed) }) { setSpeed(EmuNative.speedStep(+1)) }
+        /*
+         * Frueher aktualisierte sich nur der Knopf, der gedrueckt wurde - die
+         * Beschriftung "Spieluhr: x5" blieb also stehen, wenn man ueber
+         * "langsamer" auf x2 ging. Jetzt merken wir uns den Knopf und frischen
+         * ihn aus setSpeed() auf, egal welcher der drei bedient wurde.
+         */
+        speedButton = stateButton({ getString(R.string.speed_lbl, speed) }) {
+            setSpeed(EmuNative.speedStep(+1))
+        }
         button(R.string.speed_down) { setSpeed(EmuNative.speedStep(-1)) }
-        button(R.string.speed_reset) { EmuNative.setSpeed(1); setSpeed(1); build() }
+        button(R.string.speed_reset) { EmuNative.setSpeed(1); setSpeed(1) }
         hint(R.string.speed_hint)
         stateButton({ getString(R.string.stay_awake, onOff(stayAwake)) }) {
             stayAwake = !stayAwake
@@ -72,9 +84,27 @@ class SettingsActivity : Activity() {
             eggColor = (eggColor + 1) % EggRenderer.EGG_COUNT
             EmuWidgetProvider.renderWidgets(this, force = true)
         }
+        button(R.string.skin_pick_small) { pickSkin(false) }
+        button(R.string.skin_pick_big) { pickSkin(true) }
+        button(R.string.skin_template_small) { saveTemplate(false) }
+        button(R.string.skin_template_big) { saveTemplate(true) }
+        button(R.string.skin_reset) { resetSkins() }
+        hint(R.string.skin_hint)
+
         stateButton({ getString(R.string.widget_rate, rateLabel()) }) {
             widgetMs = nextIn(widgetMs, intArrayOf(500, 1000, 2000))
         }
+
+        header(R.string.sec_controls)
+        stateButton({ getString(R.string.speed_on_ui, onOff(speedOnUi)) }) {
+            speedOnUi = !speedOnUi
+        }
+        stateButton({ getString(R.string.show_buttons, onOff(showButtons)) }) {
+            showButtons = !showButtons
+        }
+        stateButton({ getString(R.string.gamepad, onOff(gamepad)) }) { gamepad = !gamepad }
+        button(R.string.pad_config) { padDialog() }
+        hint(R.string.controls_hint)
 
         header(R.string.sec_sound)
         stateButton({ getString(R.string.sound_lbl, onOff(sound)) }) { sound = !sound }
@@ -187,7 +217,7 @@ class SettingsActivity : Activity() {
 
     private fun setSpeed(m: Int) {
         speed = m
-        toast(getString(R.string.speed_lbl, m))
+        speedButton?.text = getString(R.string.speed_lbl, m)
     }
 
     private fun devTitle(): String {
@@ -295,6 +325,27 @@ class SettingsActivity : Activity() {
             }.onSuccess { toast(getString(R.string.done)) }
                 .onFailure { toast(getString(R.string.import_failed)) }
 
+            REQ_SKIN -> runCatching {
+                contentResolver.openInputStream(uri)!!.use { input ->
+                    EmuFiles.skin(this, skinBig).outputStream().use { input.copyTo(it) }
+                }
+                // Sofort einmal einlesen: was hier nicht als Bild durchgeht,
+                // wuerde spaeter still zum Ei zurueckfallen.
+                val ok = android.graphics.BitmapFactory
+                    .decodeFile(EmuFiles.skin(this, skinBig).absolutePath) != null
+                if (!ok) { EmuFiles.skin(this, skinBig).delete(); error("kein Bild") }
+                EmuWidgetProvider.renderWidgets(this, force = true)
+            }.onSuccess { toast(getString(R.string.done)) }
+                .onFailure { toast(getString(R.string.skin_bad)) }
+
+            REQ_TEMPLATE -> runCatching {
+                val bmp = SkinTemplate.build(this, skinBig)
+                contentResolver.openOutputStream(uri)!!.use { out ->
+                    bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+                }
+            }.onSuccess { toast(getString(R.string.done)) }
+                .onFailure { toast(getString(R.string.import_failed)) }
+
             REQ_DLC -> {
                 val list = ArrayList<Uri>()
                 val clip = data?.clipData
@@ -391,6 +442,73 @@ class SettingsActivity : Activity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /**
+     * Gamepad-Tasten festlegen: der Reihe nach A, B und C. Das Fenster nimmt
+     * den naechsten Tastendruck als Belegung - so muss niemand Tastencodes
+     * nachschlagen. Zurueck-Taste bricht ab, sonst kaeme man nicht mehr raus.
+     */
+    private fun padDialog() {
+        askKey(R.string.pad_press_a) { a ->
+            padA = a
+            askKey(R.string.pad_press_b) { b ->
+                padB = b
+                askKey(R.string.pad_press_c) { c ->
+                    padC = c
+                    toast(getString(R.string.pad_saved, keyName(padA), keyName(padB), keyName(padC)))
+                }
+            }
+        }
+    }
+
+    private fun askKey(promptRes: Int, done: (Int) -> Unit) {
+        val dlg = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.pad_config))
+            .setMessage(getString(promptRes))
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+        dlg.setOnKeyListener { d, code, ev ->
+            if (ev.action != android.view.KeyEvent.ACTION_UP) return@setOnKeyListener true
+            if (code == android.view.KeyEvent.KEYCODE_BACK) { d.dismiss(); return@setOnKeyListener true }
+            d.dismiss()
+            done(code)
+            true
+        }
+        dlg.show()
+    }
+
+    private fun keyName(code: Int): String =
+        android.view.KeyEvent.keyCodeToString(code).removePrefix("KEYCODE_")
+
+    /*
+     * Eigenes Widget-Bild. Der Ablauf ist bewusst zweistufig: erst die Vorlage
+     * sichern und bemalen, dann das fertige Bild waehlen. Nur so weiss der
+     * Benutzer, wo Bildschirm und Knoepfe liegen.
+     */
+    private fun pickSkin(big: Boolean) {
+        skinBig = big
+        val i = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            .addCategory(Intent.CATEGORY_OPENABLE).setType("image/*")
+        startActivityForResult(i, REQ_SKIN)
+    }
+
+    private fun saveTemplate(big: Boolean) {
+        skinBig = big
+        val i = Intent(Intent.ACTION_CREATE_DOCUMENT)
+            .addCategory(Intent.CATEGORY_OPENABLE).setType("image/png")
+            .putExtra(
+                Intent.EXTRA_TITLE,
+                if (big) "tamaemu-skin-large.png" else "tamaemu-skin-compact.png"
+            )
+        startActivityForResult(i, REQ_TEMPLATE)
+    }
+
+    private fun resetSkins() {
+        EmuFiles.skin(this, false).delete()
+        EmuFiles.skin(this, true).delete()
+        EmuWidgetProvider.renderWidgets(this, force = true)
+        toast(getString(R.string.done))
     }
 
     private fun connectDialog() {
@@ -602,7 +720,7 @@ class SettingsActivity : Activity() {
     }
 
     /** Knopf, dessen Beschriftung sich nach jedem Klick selbst aktualisiert. */
-    private fun stateButton(labelFn: () -> String, onClick: () -> Unit) {
+    private fun stateButton(labelFn: () -> String, onClick: () -> Unit): Button {
         lateinit var b: Button
         b = Button(this).apply {
             text = labelFn()
@@ -612,6 +730,7 @@ class SettingsActivity : Activity() {
             setOnClickListener { onClick(); b.text = labelFn() }
         }
         box.addView(b)
+        return b
     }
 
     private fun onOff(b: Boolean) = if (b) getString(R.string.on) else getString(R.string.off)

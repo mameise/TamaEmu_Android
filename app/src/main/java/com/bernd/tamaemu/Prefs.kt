@@ -30,6 +30,24 @@ var Context.eggColor: Int               // Ei-Gehaeusefarbe (Index in EggRendere
 var Context.pixelGrid: Boolean          // sichtbares LCD-Raster im Vollbild
     get() = emuSp().getBoolean("grid", false); set(v) = putB("grid", v)
 
+// --- Bedienung ---
+/** Tempo-Knoepfe zusaetzlich auf dem Hauptbildschirm zeigen. */
+var Context.speedOnUi: Boolean
+    get() = emuSp().getBoolean("speedui", false); set(v) = putB("speedui", v)
+/** A/B/C-Knoepfe auf dem Hauptbildschirm zeigen (aus bei reiner Gamepad-Bedienung). */
+var Context.showButtons: Boolean
+    get() = emuSp().getBoolean("showbtns", true); set(v) = putB("showbtns", v)
+/** Bedienung ueber ein angeschlossenes Gamepad. */
+var Context.gamepad: Boolean
+    get() = emuSp().getBoolean("gamepad", false); set(v) = putB("gamepad", v)
+/** Tastencodes des Gamepads fuer A, B und C. */
+var Context.padA: Int
+    get() = emuSp().getInt("pada", android.view.KeyEvent.KEYCODE_BUTTON_A); set(v) = putI("pada", v)
+var Context.padB: Int
+    get() = emuSp().getInt("padb", android.view.KeyEvent.KEYCODE_BUTTON_B); set(v) = putI("padb", v)
+var Context.padC: Int
+    get() = emuSp().getInt("padc", android.view.KeyEvent.KEYCODE_BUTTON_X); set(v) = putI("padc", v)
+
 // --- Verhalten ---
 var Context.bgRun: Boolean              // im Hintergrund weiterlaufen (Foreground-Service)
     get() = emuSp().getBoolean("bgrun", true); set(v) = putB("bgrun", v)
@@ -51,6 +69,10 @@ object EmuFiles {
     fun ram(c: Context, dev: String): File = File(c.filesDir, "$dev.sav.ram")
     fun hasRom(c: Context) = rom(c).length() > 0x1000
     fun ramSnap(c: Context, slot: Int): File = File(c.filesDir, "ramsnap${slot + 1}.bin")
+    /** Eigenes Widget-Bild des Benutzers (klein bzw. gross). */
+    fun skin(c: Context, big: Boolean): File =
+        File(c.filesDir, if (big) "skin_big.png" else "skin_small.png")
+
     /** Vollstaendiger Zustand; wird nach einem App-Update verworfen. */
     fun state(c: Context, device: String): File = File(c.filesDir, "$device.state")
 }

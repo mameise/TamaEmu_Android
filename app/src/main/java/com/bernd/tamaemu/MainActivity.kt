@@ -28,6 +28,9 @@ class MainActivity : Activity() {
     private var running = false
     private lateinit var panel: PanelView
     private lateinit var hint: TextView
+    private lateinit var speedRow: LinearLayout
+    private lateinit var btnRow: LinearLayout
+    private lateinit var speedLabel: TextView
     private var btnH = 0
 
     private val loop = object : Runnable {
@@ -80,6 +83,26 @@ class MainActivity : Activity() {
 
         val d = resources.displayMetrics.density
         btnH = (64 * d).toInt()
+        // Tempo-Knoepfe, wahlweise ueber den A/B/C-Knoepfen
+        speedRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { leftMargin = (8 * d).toInt(); rightMargin = (8 * d).toInt() }
+        }
+        speedLabel = TextView(this).apply {
+            setTextColor(Color.WHITE)
+            textSize = 15f
+            gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f)
+        }
+        speedRow.addView(speedButton("\u2212") { setSpeed(EmuNative.speedStep(-1)) })
+        speedRow.addView(speedLabel)
+        speedRow.addView(speedButton("+") { setSpeed(EmuNative.speedStep(+1)) })
+        speedRow.addView(speedButton("x1") { EmuNative.setSpeed(1); setSpeed(1) })
+
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
@@ -99,13 +122,47 @@ class MainActivity : Activity() {
             setOnClickListener { openSettings() }
         })
 
+        btnRow = row
         root.addView(panel)
         root.addView(hint)
+        root.addView(speedRow)
         root.addView(row)
         setContentView(root)
     }
 
     private fun openSettings() = startActivity(Intent(this, SettingsActivity::class.java))
+
+    private fun speedButton(label: String, onClick: () -> Unit): Button = Button(this).apply {
+        text = label
+        layoutParams = LinearLayout.LayoutParams(0, (44 * resources.displayMetrics.density).toInt(), 1f)
+        setOnClickListener { onClick() }
+    }
+
+    private fun setSpeed(m: Int) {
+        this.speed = m
+        speedLabel.text = getString(R.string.speed_lbl, m)
+    }
+
+    /**
+     * Gamepad: die Tastencodes kommen aus den Einstellungen. Gedrueckt halten
+     * wird durchgereicht wie bei den Schaltflaechen, damit die Entprellung der
+     * Firmware den Druck sieht.
+     */
+    override fun dispatchKeyEvent(e: android.view.KeyEvent): Boolean {
+        if (!this.gamepad) return super.dispatchKeyEvent(e)
+        val maske = when (e.keyCode) {
+            this.padA -> EmuNative.BTN_A
+            this.padB -> EmuNative.BTN_B
+            this.padC -> EmuNative.BTN_C
+            else -> 0
+        }
+        if (maske == 0) return super.dispatchKeyEvent(e)
+        when (e.action) {
+            android.view.KeyEvent.ACTION_DOWN -> if (e.repeatCount == 0) Input.down(maske)
+            android.view.KeyEvent.ACTION_UP -> Input.up(maske)
+        }
+        return true
+    }
 
     private fun holdButton(label: String, mask: Int): Button = Button(this).apply {
         text = label
@@ -133,6 +190,10 @@ class MainActivity : Activity() {
         if (EmuFiles.hasRom(this)) {
             if (this.bgRun) EmuService.start(this) else EmuService.bootCore(this)
         }
+        speedRow.visibility = if (this.speedOnUi) View.VISIBLE else View.GONE
+        btnRow.visibility = if (this.showButtons) View.VISIBLE else View.GONE
+        setSpeed(this.speed)
+
         running = true
         ui.post(loop)
     }
