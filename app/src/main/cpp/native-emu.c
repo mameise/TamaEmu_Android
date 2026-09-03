@@ -192,12 +192,24 @@ static void *emu_thread(void *arg)
             LOGI("[cpu] Neustart, Reset-Vektor -> %08x", E.pc);
         }
 
+        /*
+         * Ein Bild dauert 1/60 EMULIERTE Sekunde - nicht eine feste Anzahl
+         * Zyklen.
+         *
+         * Frueher wurde die Anzahl einmal je Bild aus der Taktfrequenz
+         * bestimmt. Wechselt die Firmware MITTEN im Bild in den Schlaf, faellt
+         * der Takt von 18,43 MHz auf 16 kHz - die restlichen Zyklen dieses
+         * Bildes zaehlen dann als vielfache Sekunden. Aus einem Bild wurden so
+         * bis zu 18 Sekunden Spielzeit, und die Uhr des Tamas lief davon.
+         *
+         * Die Obergrenze fuer die Zyklen bleibt als Notbremse, damit die
+         * Schleife nicht haengt, falls emu_secs einmal stehen sollte.
+         */
+        double t_ziel = E.emu_secs + 1.0 / 60.0;
         double mclk = E.cmu.mclk_hz > 0 ? E.cmu.mclk_hz : E.dev.osc3_hz;
-        uint64_t quantum = (uint64_t)(mclk / 60.0);
-        if (quantum < 1000) quantum = 1000;
-        uint64_t target = E.cycles + quantum;
+        uint64_t notbremse = E.cycles + (uint64_t)(mclk / 60.0) + 100000;
 
-        while (E.cycles < target && !E.stopped) {
+        while (E.emu_secs < t_ziel && E.cycles < notbremse && !E.stopped) {
             /* Ruf-Haken: greift VOR der Ausfuehrung, E.pc ist die Stelle,
              * die gleich drankommt. */
             if (CALL_HOOK_N) {

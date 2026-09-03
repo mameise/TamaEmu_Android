@@ -37,6 +37,9 @@ here and marked in the source with a comment.
    and about 1.55x while allowed to sleep. After it: 1.00x while awake. The
    sleeping case still gains and is being reported upstream.
 
+(The frame metering that used to cause a running clock during sleep was in this
+port's own loop, not in the core — see `native-emu.c`.)
+
 ## `link.c` and `periph.c` held at an earlier state
 
 4. **These two files are kept at the state before commit b0eefc8**
