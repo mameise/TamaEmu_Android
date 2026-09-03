@@ -178,6 +178,7 @@ static void *emu_thread(void *arg)
 {
     (void)arg;
     uint64_t deadline = 0;
+    double   t_ziel = 0.0;      /* fortlaufendes Ziel der Spielzeit */
     int64_t next_persist = now_ms() + 10000;
     uint64_t mips_cyc = E.cycles;
     int64_t  mips_at = now_ms();
@@ -205,7 +206,16 @@ static void *emu_thread(void *arg)
          * Die Obergrenze fuer die Zyklen bleibt als Notbremse, damit die
          * Schleife nicht haengt, falls emu_secs einmal stehen sollte.
          */
-        double t_ziel = E.emu_secs + 1.0 / 60.0;
+        /*
+         * Das Ziel wird AUFADDIERT, nicht bei jedem Bild neu aus emu_secs
+         * gebildet. Ein Bild kann die Marke naemlich ueberschreiten - die
+         * Zeitbuchung des Kerns laeuft in Schritten, und im Schlaf ist ein
+         * Schritt fast so gross wie ein ganzes Bild. Wer dann neu ansetzt,
+         * verschenkt den Ueberschuss jedes Mal, und die Spieluhr laeuft
+         * dauerhaft vor. Aufaddiert holt das naechste Bild ihn wieder herein.
+         */
+        if (t_ziel <= 0.0) t_ziel = E.emu_secs;
+        t_ziel += 1.0 / 60.0;
         double mclk = E.cmu.mclk_hz > 0 ? E.cmu.mclk_hz : E.dev.osc3_hz;
         uint64_t notbremse = E.cycles + (uint64_t)(mclk / 60.0) + 100000;
 
@@ -241,7 +251,14 @@ static void *emu_thread(void *arg)
                 }
             }
             tone_was = E.tone_on;
-            if (E.cycles - E.last_tick >= 256) {
+            /*
+             * Buchungsschritt an den Takt anpassen. Bei 18,43 MHz sind 256
+             * Zyklen 14 Mikrosekunden - fein genug. Im Schlaf bei 16 kHz waeren
+             * es 15,6 Millisekunden, also fast ein ganzes Bild; die Uhr springt
+             * dann in groben Stufen. Deshalb dort in kleineren Schritten.
+             */
+            uint32_t schritt = mclk > 1000000.0 ? 256u : 8u;
+            if (E.cycles - E.last_tick >= schritt) {
                 periph_tick(&E, (uint32_t)(E.cycles - E.last_tick));
                 E.last_tick = E.cycles;
                 periph_buttons(&E, cur_mask());
