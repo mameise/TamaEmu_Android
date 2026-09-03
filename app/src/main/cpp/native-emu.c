@@ -1162,3 +1162,24 @@ Java_com_bernd_tamaemu_EmuNative_saveMismatch(JNIEnv *env, jclass c)
 {
     return SAV_MISMATCH ? JNI_TRUE : JNI_FALSE;
 }
+
+/**
+ * Tonerzeugung nach einem Kernwechsel zuruecksetzen.
+ *
+ * Der Ring und die Zeitmarken der Erzeugung sind statisch und ueberleben das
+ * Entladen. Nach dem Laden einer anderen Firmware zeigen sie ins Leere: der
+ * Verbraucher spielt noch alte Werte, und die Erzeugung setzt erst nach ihrer
+ * eigenen Notbremse wieder auf. Genau das war die Verzoegerung, bis der Ton
+ * nach einem Firmwarewechsel wiederkam.
+ */
+JNIEXPORT void JNICALL
+Java_com_bernd_tamaemu_EmuNative_audioReset(JNIEnv *env, jclass c)
+{
+    AUD_R = AUD_W;          /* alte Werte verwerfen */
+    AUD_UNDER = 0;
+    aud_cyc = 0;            /* beim naechsten Lauf neu aufsetzen */
+    aud_ev_r = E.tone_ev_w; /* keine Toene aus dem vorherigen Leben */
+    aud_on = 0;
+    aud_phase = 0.0;
+    aud_frac = 0.0;
+}

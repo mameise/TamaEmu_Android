@@ -303,18 +303,28 @@ class SettingsActivity : Activity() {
             .show()
     }
 
+    /*
+     * Der Wechsel laeuft VOLLSTAENDIG innerhalb der Sperre - inklusive
+     * Entladen. Hochgefahren wird danach vom Takt des Dienstes, der die Sperre
+     * beachtet. Frueher wurde zusaetzlich ein Neuladen angestossen, und beide
+     * kamen sich ins Gehege: der Kern startete zweimal kurz hintereinander,
+     * blieb dabei haengen, und der Ton brauchte, bis seine eigene Notbremse
+     * griff.
+     */
     private fun wechsleRom(id: String) {
         if (id == EmuFiles.romId(this)) return
         EmuService.withCore {
             EmuNative.persist(true)
             Thread.sleep(300)
-            EmuNative.stop(); EmuNative.unload()
+            EmuNative.stop()
+            EmuNative.unload()
+            EmuNative.audioReset()
             EmuFiles.setRomId(this, id)
             val dv = EmuFiles.romDevice(this, id)
             if (dv.isNotEmpty()) device = dv
             romName = EmuFiles.romName(this, id)
         }
-        EmuService.reload(this)
+        EmuService.start(this)      // falls der Dienst nicht laeuft
         build()
         toast(getString(R.string.done))
     }
@@ -342,7 +352,7 @@ class SettingsActivity : Activity() {
                                 }
                             }
                         }
-                        EmuService.reload(this)
+                        EmuService.start(this)
                         build()
                     }
                     .setNegativeButton(android.R.string.cancel, null)

@@ -120,6 +120,7 @@ class EmuService : Service() {
             EmuNative.callMelody(true)
             EmuNative.callExpiry(ctx.callExpiryMin * 60)
             if (!EmuNative.isRunning()) {
+                EmuNative.audioReset()      // Ring und Zeitmarken passen sonst nicht
                 if (!EmuNative.start()) {
                     /* Kern angehalten (etwa falsches Geraeteprofil zur
                      * Firmware): entladen, damit der naechste Versuch sauber
@@ -191,7 +192,7 @@ class EmuService : Service() {
         override fun run() {
             val ctx = applicationContext
             if (coreBusy) {                       // Oberflaeche arbeitet gerade
-                handler.postDelayed(this, 250L)
+                handler.postDelayed(this, 100L)   // zuegig wieder nachsehen
                 return
             }
             if (!bootCore(ctx)) { stopSelf(); return }

@@ -55,6 +55,8 @@ object EmuNative {
 
     // --- Ton ---
     external fun audioStart(rate: Int)
+    /** Ton nach einem Kernwechsel neu aufsetzen. */
+    external fun audioReset()
     external fun audioPull(out: ShortArray, frames: Int): Int
     external fun audioVolume(percent: Int)
     external fun audioAvail(): Int

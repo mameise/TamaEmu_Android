@@ -51,6 +51,18 @@ the *old* profile. The core then stopped on an illegal instruction and stayed
 that way. The core is now held unloaded across the whole import, and a core
 that refuses to start is unloaded instead of left behind.
 
+### Fixed — switching firmware left the core stuck and the sound late
+
+Switching used to unload the core and *also* ask the service to reload it. Both
+ran, so the core started twice in quick succession and could end up wedged.
+The whole switch now happens under the same lock, and the service timer brings
+the core back up afterwards — one path, not two.
+
+The audio ring and its timing marks are static and survive an unload, so after
+a switch the consumer played stale samples and the producer only recovered once
+its own safety net kicked in. The audio pipeline is now reset explicitly
+whenever a core starts.
+
 ### Added — several firmwares side by side
 
 Firmware files are kept in a small library, each with its own device profile
