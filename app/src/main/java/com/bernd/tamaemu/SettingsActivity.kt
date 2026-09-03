@@ -56,7 +56,8 @@ class SettingsActivity : Activity() {
         header(R.string.sec_rom)
         romStatus = TextView(this)
         box.addView(romStatus)
-        button(R.string.import_rom) { confirmImportRom() }
+        button(R.string.import_rom) { pickFile(REQ_ROM) }
+        button(R.string.rom_switch) { romDialog() }
         stateButton({ getString(R.string.device_lbl, devTitle()) }) { chooseDevice() }
         hint(R.string.device_hint)
 
@@ -271,6 +272,8 @@ class SettingsActivity : Activity() {
             )
             .setItems(labels) { _, which ->
                 device = names[which]
+                EmuFiles.setRomDevice(this, EmuFiles.romId(this), device)
+                EmuService.coreBusy = false      // jetzt darf wieder gestartet werden
                 EmuService.reload(this)
                 build()
             }
@@ -279,19 +282,72 @@ class SettingsActivity : Activity() {
     }
 
     /**
-     * Vor dem Import warnen: die vorhandenen Spielstaende gehoeren zur ALTEN
-     * Firmware (ein Spielstand ist ihr Flash-Abbild) und werden deshalb
-     * geloescht. Wer sie behalten will, exportiert sie vorher.
+     * Zwischen den vorhandenen Firmwares wechseln. Jede bringt ihr
+     * Geraeteprofil und ihre Spielstaende mit; gewechselt wird ohne
+     * Neuimport.
      */
-    private fun confirmImportRom() {
-        val hatStand = EmuNative.devices().map { it.substringBefore('|') }
-            .any { EmuFiles.sav(this, it).exists() }
-        if (!hatStand) { pickFile(REQ_ROM); return }
+    private fun romDialog() {
+        val ids = EmuFiles.romList(this)
+        if (ids.isEmpty()) { toast(getString(R.string.rom_missing)); return }
+        val aktiv = EmuFiles.romId(this)
+        val labels = ids.map { id ->
+            val nm = EmuFiles.romName(this, id).ifEmpty { id }
+            val dv = EmuFiles.romDevice(this, id)
+            (if (id == aktiv) "\u25B6 " else "") + nm + (if (dv.isEmpty()) "" else "  ($dv)")
+        }.toTypedArray()
         AlertDialog.Builder(this)
-            .setTitle(getString(R.string.import_rom))
-            .setMessage(getString(R.string.import_rom_warn))
-            .setPositiveButton(getString(R.string.import_rom_go)) { _, _ -> pickFile(REQ_ROM) }
-            .setNeutralButton(getString(R.string.save_export)) { _, _ -> exportSave() }
+            .setTitle(getString(R.string.rom_switch))
+            .setItems(labels) { _, which -> wechsleRom(ids[which]) }
+            .setNeutralButton(getString(R.string.rom_remove)) { _, _ -> removeRomDialog(ids) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun wechsleRom(id: String) {
+        if (id == EmuFiles.romId(this)) return
+        EmuService.withCore {
+            EmuNative.persist(true)
+            Thread.sleep(300)
+            EmuNative.stop(); EmuNative.unload()
+            EmuFiles.setRomId(this, id)
+            val dv = EmuFiles.romDevice(this, id)
+            if (dv.isNotEmpty()) device = dv
+            romName = EmuFiles.romName(this, id)
+        }
+        EmuService.reload(this)
+        build()
+        toast(getString(R.string.done))
+    }
+
+    private fun removeRomDialog(ids: List<String>) {
+        val labels = ids.map { EmuFiles.romName(this, it).ifEmpty { it } }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.rom_remove))
+            .setItems(labels) { _, which ->
+                val id = ids[which]
+                AlertDialog.Builder(this)
+                    .setMessage(getString(R.string.rom_remove_confirm, labels[which]))
+                    .setPositiveButton(getString(R.string.wipe)) { _, _ ->
+                        val warAktiv = id == EmuFiles.romId(this)
+                        EmuService.withCore {
+                            if (warAktiv) { EmuNative.stop(); EmuNative.unload() }
+                            EmuFiles.removeRom(this, id)
+                            if (warAktiv) {
+                                val rest = EmuFiles.romList(this).firstOrNull()
+                                EmuFiles.setRomId(this, rest ?: "")
+                                if (rest != null) {
+                                    val dv = EmuFiles.romDevice(this, rest)
+                                    if (dv.isNotEmpty()) device = dv
+                                    romName = EmuFiles.romName(this, rest)
+                                }
+                            }
+                        }
+                        EmuService.reload(this)
+                        build()
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
@@ -324,29 +380,42 @@ class SettingsActivity : Activity() {
         val uri = data?.data ?: data?.clipData?.getItemAt(0)?.uri ?: return
         when (req) {
             REQ_ROM -> runCatching {
+                /*
+                 * Der Takt des Dienstes faehrt den Kern von selbst wieder hoch,
+                 * sobald er ihn entladen findet. Zwischen "neue Firmware
+                 * geschrieben" und "Geraet gewaehlt" wuerde er also mit dem
+                 * ALTEN Profil und der NEUEN Firmware starten - und daran
+                 * bleibt der Bildschirm schwarz, bis der Prozess neu startet.
+                 * Deshalb bleibt der Kern hier gesperrt; freigegeben wird erst
+                 * nach der Geraetewahl in askDevice().
+                 */
+                EmuService.coreBusy = true
                 EmuNative.persist(true)
                 EmuNative.stop(); EmuNative.unload()
-                contentResolver.openInputStream(uri)!!.use { input ->
-                    EmuFiles.rom(this).outputStream().use { input.copyTo(it) }
-                }
-                romName = queryName(uri) ?: "rom.bin"
                 /*
-                 * Ein Spielstand IST das Flash-Abbild der alten Firmware - er
-                 * wuerde die neue beim Laden vollstaendig ueberschreiben. Beim
-                 * Wechsel der Firmware muessen die Staende deshalb weg, und
-                 * zwar fuer JEDES Geraeteprofil: wer zwischendurch das Profil
-                 * gewechselt hat, hat unter dessen Namen ebenfalls ein Abbild
-                 * der alten Firmware liegen. Genau daran blieb der Bildschirm
-                 * beim Import einer anderen Firmware schwarz.
+                 * Erst in eine Zwischendatei, dann die Kennung berechnen und
+                 * unter diesem Namen in die Sammlung legen. Ist dieselbe
+                 * Firmware schon da, wird sie einfach wieder aktiv - ohne
+                 * zweite Kopie und ohne den Spielstand zu verlieren.
                  */
-                for (d in EmuNative.devices().map { it.substringBefore('|') }) {
-                    EmuFiles.sav(this, d).delete()
-                    EmuFiles.ram(this, d).delete()
-                    EmuFiles.state(this, d).delete()
-                    java.io.File(EmuFiles.sav(this, d).absolutePath + ".bak").delete()
+                val tmp = java.io.File(cacheDir, "import.bin")
+                contentResolver.openInputStream(uri)!!.use { input ->
+                    tmp.outputStream().use { input.copyTo(it) }
                 }
+                val id = EmuFiles.crc32(tmp)
+                val ziel = EmuFiles.romFile(this, id)
+                if (!ziel.exists()) tmp.copyTo(ziel, overwrite = true)
+                tmp.delete()
+                EmuFiles.setRomId(this, id)
+                val nm = queryName(uri) ?: "rom.bin"
+                romName = nm
+                EmuFiles.setRomName(this, id, nm)
             }.onSuccess { refresh(); askDevice() }
-                .onFailure { toast(getString(R.string.import_failed)) }
+                .onFailure {
+                    EmuService.coreBusy = false
+                    EmuService.reload(this)
+                    toast(getString(R.string.import_failed))
+                }
 
             REQ_SAVE_EXPORT -> runCatching {
                 contentResolver.openOutputStream(uri)!!.use { out ->

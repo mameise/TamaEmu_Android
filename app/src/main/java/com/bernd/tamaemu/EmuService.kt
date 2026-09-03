@@ -120,7 +120,14 @@ class EmuService : Service() {
             EmuNative.callMelody(true)
             EmuNative.callExpiry(ctx.callExpiryMin * 60)
             if (!EmuNative.isRunning()) {
-                EmuNative.start()
+                if (!EmuNative.start()) {
+                    /* Kern angehalten (etwa falsches Geraeteprofil zur
+                     * Firmware): entladen, damit der naechste Versuch sauber
+                     * neu aufsetzt statt still schwarz zu bleiben. */
+                    android.util.Log.e("tamaemu", "[dienst] Kern startet nicht - wird entladen")
+                    EmuNative.unload()
+                    return false
+                }
                 startCatchUp(ctx)
             }
             return true
@@ -234,8 +241,10 @@ class EmuService : Service() {
             ACTION_RELOAD -> handler.post {
                 EmuNative.stop()
                 EmuNative.unload()
-                bootCore(applicationContext)
-                startSound()      // falls der Tonfaden zwischendurch endete
+                if (!coreBusy) {          // waehrend eines Imports NICHT starten
+                    bootCore(applicationContext)
+                    startSound()          // falls der Tonfaden zwischendurch endete
+                }
             }
             ACTION_RESTART -> handler.post {
                 EmuNative.persist(true)

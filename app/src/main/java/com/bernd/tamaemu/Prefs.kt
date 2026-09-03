@@ -75,11 +75,98 @@ var Context.vibeMs: Int                 // Vibrationsdauer in ms
 
 /** Dateien: die Firmware liegt privat im App-Ordner und verlaesst das Geraet nie. */
 object EmuFiles {
-    fun rom(c: Context): File = File(c.filesDir, "rom.bin")
-    fun sav(c: Context, dev: String): File = File(c.filesDir, "$dev.sav")
-    fun ram(c: Context, dev: String): File = File(c.filesDir, "$dev.sav.ram")
+    /*
+     * Mehrere Firmwares nebeneinander: jede liegt als roms/<kennung>.bin, die
+     * aktive steht in den Einstellungen. Frueher gab es nur eine rom.bin -
+     * die wird beim ersten Zugriff in die Sammlung uebernommen, damit niemand
+     * neu importieren muss.
+     */
+    fun romsDir(c: Context): File = File(c.filesDir, "roms").apply { mkdirs() }
+
+    fun romFile(c: Context, id: String): File = File(romsDir(c), "$id.bin")
+
+    fun rom(c: Context): File {
+        uebernimmAlteRom(c)
+        val id = c.emuSp().getString("romid", "") ?: ""
+        return if (id.isEmpty()) File(c.filesDir, "rom.bin") else romFile(c, id)
+    }
+
+    private fun uebernimmAlteRom(c: Context) {
+        val alt = File(c.filesDir, "rom.bin")
+        if (!alt.exists() || alt.length() < 0x1000) return
+        val id = crc32(alt)
+        val ziel = romFile(c, id)
+        if (!ziel.exists()) alt.copyTo(ziel, overwrite = true)
+        alt.delete()
+        if ((c.emuSp().getString("romid", "") ?: "").isEmpty()) setRomId(c, id)
+        if (romName(c, id).isEmpty()) setRomName(c, id, c.romName.ifEmpty { "rom.bin" })
+        if (romDevice(c, id).isEmpty()) setRomDevice(c, id, c.device)
+    }
+
+    /** Alle vorhandenen Firmwares, neueste zuerst. */
+    fun romList(c: Context): List<String> =
+        romsDir(c).listFiles()?.filter { it.name.endsWith(".bin") }
+            ?.sortedByDescending { it.lastModified() }
+            ?.map { it.name.removeSuffix(".bin") } ?: emptyList()
+
+    fun romName(c: Context, id: String): String = c.emuSp().getString("romname_$id", "") ?: ""
+    fun setRomName(c: Context, id: String, n: String) =
+        c.emuSp().edit().putString("romname_$id", n).apply()
+    fun romDevice(c: Context, id: String): String = c.emuSp().getString("romdev_$id", "") ?: ""
+    fun setRomDevice(c: Context, id: String, d: String) =
+        c.emuSp().edit().putString("romdev_$id", d).apply()
+
+    fun crc32(f: File): String = runCatching {
+        val crc = java.util.zip.CRC32()
+        f.inputStream().use { ein ->
+            val puffer = ByteArray(1 shl 16)
+            while (true) {
+                val n = ein.read(puffer)
+                if (n <= 0) break
+                crc.update(puffer, 0, n)
+            }
+        }
+        java.lang.Long.toHexString(crc.value)
+    }.getOrDefault("none")
+
+    /** Firmware samt Spielstaenden entfernen. */
+    fun removeRom(c: Context, id: String) {
+        romFile(c, id).delete()
+        c.filesDir.listFiles()?.filter { it.name.contains("_$id.") }?.forEach { it.delete() }
+        c.emuSp().edit().remove("romname_$id").remove("romdev_$id").apply()
+    }
+    fun sav(c: Context, dev: String): File = mitKennung(c, dev, ".sav")
+    fun ram(c: Context, dev: String): File = mitKennung(c, dev, ".sav.ram")
     fun hasRom(c: Context) = rom(c).length() > 0x1000
     fun ramSnap(c: Context, slot: Int): File = File(c.filesDir, "ramsnap${slot + 1}.bin")
+    /**
+     * Kennung der geladenen Firmware (CRC32 der Datei, hexadezimal).
+     *
+     * Spielstaende haengen daran statt nur am Geraeteprofil: wer zwischen
+     * mehreren Firmwares wechselt, findet seinen Stand beim Zurueckwechseln
+     * wieder, statt ihn beim Import zu verlieren.
+     */
+    fun romId(c: Context): String = c.emuSp().getString("romid", "") ?: "none"
+
+    fun berechneRomId(c: Context): String = crc32(rom(c))
+
+    fun setRomId(c: Context, id: String) {
+        c.emuSp().edit().putString("romid", id).apply()
+    }
+
+    /**
+     * Namen der Spielstandsdateien. Alte Staende ohne Kennung werden beim
+     * ersten Zugriff umbenannt, damit niemand seinen Stand verliert.
+     */
+    private fun mitKennung(c: Context, device: String, endung: String): File {
+        val neu = File(c.filesDir, "${device}_${romId(c)}$endung")
+        if (!neu.exists()) {
+            val alt = File(c.filesDir, "$device$endung")
+            if (alt.exists()) alt.renameTo(neu)
+        }
+        return neu
+    }
+
     /** Eigenes Widget-Bild des Benutzers, je Ausfuehrung. */
     fun skin(c: Context, art: EggRenderer.Art): File = File(
         c.filesDir, when (art) {
@@ -90,7 +177,7 @@ object EmuFiles {
     )
 
     /** Vollstaendiger Zustand; wird nach einem App-Update verworfen. */
-    fun state(c: Context, device: String): File = File(c.filesDir, "$device.state")
+    fun state(c: Context, device: String): File = mitKennung(c, device, ".state")
 }
 
 // --- Zeitausgleich ---
