@@ -56,7 +56,7 @@ class SettingsActivity : Activity() {
         header(R.string.sec_rom)
         romStatus = TextView(this)
         box.addView(romStatus)
-        button(R.string.import_rom) { pickFile(REQ_ROM) }
+        button(R.string.import_rom) { confirmImportRom() }
         stateButton({ getString(R.string.device_lbl, devTitle()) }) { chooseDevice() }
         hint(R.string.device_hint)
 
@@ -278,6 +278,24 @@ class SettingsActivity : Activity() {
             .show()
     }
 
+    /**
+     * Vor dem Import warnen: die vorhandenen Spielstaende gehoeren zur ALTEN
+     * Firmware (ein Spielstand ist ihr Flash-Abbild) und werden deshalb
+     * geloescht. Wer sie behalten will, exportiert sie vorher.
+     */
+    private fun confirmImportRom() {
+        val hatStand = EmuNative.devices().map { it.substringBefore('|') }
+            .any { EmuFiles.sav(this, it).exists() }
+        if (!hatStand) { pickFile(REQ_ROM); return }
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.import_rom))
+            .setMessage(getString(R.string.import_rom_warn))
+            .setPositiveButton(getString(R.string.import_rom_go)) { _, _ -> pickFile(REQ_ROM) }
+            .setNeutralButton(getString(R.string.save_export)) { _, _ -> exportSave() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun pickFile(req: Int) {
         val i = Intent(Intent.ACTION_OPEN_DOCUMENT)
             .addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
@@ -312,7 +330,21 @@ class SettingsActivity : Activity() {
                     EmuFiles.rom(this).outputStream().use { input.copyTo(it) }
                 }
                 romName = queryName(uri) ?: "rom.bin"
-                EmuFiles.state(this, device).delete()      // andere Firmware
+                /*
+                 * Ein Spielstand IST das Flash-Abbild der alten Firmware - er
+                 * wuerde die neue beim Laden vollstaendig ueberschreiben. Beim
+                 * Wechsel der Firmware muessen die Staende deshalb weg, und
+                 * zwar fuer JEDES Geraeteprofil: wer zwischendurch das Profil
+                 * gewechselt hat, hat unter dessen Namen ebenfalls ein Abbild
+                 * der alten Firmware liegen. Genau daran blieb der Bildschirm
+                 * beim Import einer anderen Firmware schwarz.
+                 */
+                for (d in EmuNative.devices().map { it.substringBefore('|') }) {
+                    EmuFiles.sav(this, d).delete()
+                    EmuFiles.ram(this, d).delete()
+                    EmuFiles.state(this, d).delete()
+                    java.io.File(EmuFiles.sav(this, d).absolutePath + ".bak").delete()
+                }
             }.onSuccess { refresh(); askDevice() }
                 .onFailure { toast(getString(R.string.import_failed)) }
 
@@ -324,6 +356,7 @@ class SettingsActivity : Activity() {
                 .onFailure { toast(getString(R.string.import_failed)) }
 
             REQ_SAVE_IMPORT -> runCatching {
+                EmuService.withCore {
                 EmuNative.stop(); EmuNative.unload()
                 contentResolver.openInputStream(uri)!!.use { input ->
                     EmuFiles.sav(this, device).outputStream().use { input.copyTo(it) }
@@ -331,6 +364,7 @@ class SettingsActivity : Activity() {
                 EmuFiles.ram(this, device).delete()
                 EmuFiles.state(this, device).delete()
                 EmuService.reload(this)
+                }
             }.onSuccess { toast(getString(R.string.done)) }
                 .onFailure { toast(getString(R.string.import_failed)) }
 
@@ -369,6 +403,7 @@ class SettingsActivity : Activity() {
     private fun installDlc(uris: List<Uri>) {
         if (!EmuFiles.hasRom(this)) { toast(getString(R.string.rom_missing)); return }
         runCatching {
+            EmuService.withCore {
             EmuNative.persist(true)
             Thread.sleep(400)
             EmuNative.stop(); EmuNative.unload()
@@ -390,6 +425,7 @@ class SettingsActivity : Activity() {
             val after = slotLines(savPath).joinToString("\n")
             EmuService.reload(this)
             report + "\n" + getString(R.string.dlc_after) + "\n" + after
+            }
         }.onSuccess { showText(getString(R.string.sec_dlc), it) }
             .onFailure {
                 EmuService.reload(this)
@@ -433,15 +469,17 @@ class SettingsActivity : Activity() {
             .setMessage(getString(R.string.dlc_free_msg, label))
             .setPositiveButton(getString(R.string.wipe)) { _, _ ->
                 runCatching {
-                    EmuNative.persist(true)
-                    Thread.sleep(400)
-                    EmuNative.stop(); EmuNative.unload()
-                    EmuFiles.state(this, device).delete()
-                    val err = EmuNative.dlcFreeSlot(
-                        device, EmuFiles.sav(this, device).absolutePath, kind, slot
-                    )
-                    EmuService.reload(this)
-                    err
+                    EmuService.withCore {
+                        EmuNative.persist(true)
+                        Thread.sleep(400)
+                        EmuNative.stop(); EmuNative.unload()
+                        EmuFiles.state(this, device).delete()
+                        val err = EmuNative.dlcFreeSlot(
+                            device, EmuFiles.sav(this, device).absolutePath, kind, slot
+                        )
+                        EmuService.reload(this)
+                        err
+                    }
                 }.onSuccess { err ->
                     if (err.isEmpty()) toast(getString(R.string.done)) else toast(err)
                 }.onFailure {
@@ -589,11 +627,13 @@ class SettingsActivity : Activity() {
         AlertDialog.Builder(this)
             .setMessage(getString(R.string.wipe_confirm))
             .setPositiveButton(getString(R.string.wipe)) { _, _ ->
-                EmuNative.stop(); EmuNative.unload()
-                EmuFiles.sav(this, device).delete()
-                EmuFiles.ram(this, device).delete()
-                EmuFiles.state(this, device).delete()
-                EmuService.reload(this)
+                EmuService.withCore {
+                    EmuNative.stop(); EmuNative.unload()
+                    EmuFiles.sav(this, device).delete()
+                    EmuFiles.ram(this, device).delete()
+                    EmuFiles.state(this, device).delete()
+                    EmuService.reload(this)
+                }
                 toast(getString(R.string.done))
             }
             .setNegativeButton(android.R.string.cancel, null)

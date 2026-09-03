@@ -79,6 +79,8 @@ object EmuNative {
     // --- Zusatzinhalte ---
     /** Geraetename laut Signatur der Datei, "" wenn unbekannt. */
     external fun romGuess(path: String): String
+    /** Wahr, wenn der vorhandene Spielstand nicht zur Firmware passt. */
+    external fun saveMismatch(): Boolean
     external fun dlcSlots(device: String, imgPath: String): String
     external fun dlcFreeSlot(device: String, imgPath: String, kind: Int, slot: Int): String
     external fun dlcInstall(

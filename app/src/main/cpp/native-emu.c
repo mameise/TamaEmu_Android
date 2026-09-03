@@ -36,6 +36,7 @@ static volatile int64_t HOLD_UNTIL[3];
 static volatile int  SPEED = 1;
 static volatile int  STAYAWAKE;
 static char SAVPATH[600], RAMPATH[620], STATEPATH[620], BUILDID[32];
+static volatile int SAV_MISMATCH;
 static char STATE_MSG[160] = "noch nicht geladen";
 static volatile double MIPS;
 
@@ -408,11 +409,38 @@ Java_com_bernd_tamaemu_EmuNative_init(JNIEnv *env, jclass c, jstring jrom,
     snprintf(STATEPATH, sizeof STATEPATH, "%s", st);
     snprintf(BUILDID, sizeof BUILDID, "%s", bid);
 
+    /*
+     * Der Spielstand IST das Flash-Abbild - er ueberschreibt also die eben
+     * geladene Firmware vollstaendig. Gehoert er zu einer anderen Firmware,
+     * bleibt der Bildschirm schwarz, und niemand kaeme darauf, warum.
+     *
+     * Deshalb eine Probe: der Reset-Vektor muss in beiden gleich sein. Passt er
+     * nicht, wird der Spielstand NICHT genommen und der Grund gemeldet.
+     */
+    uint32_t rom_vec = mem_read32(&E, E.dev.ttbr_reset);
     FILE *sf = fopen(SAVPATH, "rb");
     if (sf) {
-        size_t sn = fread(E.rom, 1, E.dev.rom_size, sf);
+        uint8_t *tmp = malloc(E.dev.rom_size);
+        size_t sn = tmp ? fread(tmp, 1, E.dev.rom_size, sf) : 0;
         fclose(sf);
-        LOGI("[flash] Spielstand geladen (%zu Bytes)", sn);
+        if (tmp && sn >= 0x1000) {
+            uint32_t off = E.dev.ttbr_reset - E.dev.rom_base;
+            uint32_t sav_vec = (off + 4 <= sn)
+                ? (uint32_t)tmp[off] | ((uint32_t)tmp[off+1] << 8) |
+                  ((uint32_t)tmp[off+2] << 16) | ((uint32_t)tmp[off+3] << 24)
+                : 0;
+            if (sav_vec == rom_vec) {
+                memcpy(E.rom, tmp, sn);
+                LOGI("[flash] Spielstand geladen (%zu Bytes)", sn);
+            } else {
+                snprintf(STATE_MSG, sizeof STATE_MSG,
+                         "Spielstand passt nicht zur Firmware (%08x statt %08x) - nicht geladen",
+                         sav_vec, rom_vec);
+                LOGE("[flash] %s", STATE_MSG);
+                SAV_MISMATCH = 1;
+            }
+        }
+        free(tmp);
     }
     /*
      * Zwei Wege zurueck in den laufenden Betrieb, in dieser Reihenfolge:
@@ -1126,4 +1154,11 @@ Java_com_bernd_tamaemu_EmuNative_speedPercent(JNIEnv *env, jclass c)
     if (p < 0) p = 0;
     if (p > 999) p = 999;
     return (jint)(p + 0.5);
+}
+
+/** 1, wenn der vorhandene Spielstand nicht zur geladenen Firmware passt. */
+JNIEXPORT jboolean JNICALL
+Java_com_bernd_tamaemu_EmuNative_saveMismatch(JNIEnv *env, jclass c)
+{
+    return SAV_MISMATCH ? JNI_TRUE : JNI_FALSE;
 }

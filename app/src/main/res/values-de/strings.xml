@@ -141,6 +141,9 @@
     <string name="skin_pick_tall">Eigenes Bild verwenden (hohes Widget)</string>
     <string name="skin_template_tall">Vorlage sichern (hoch)</string>
     <string name="widget_desc_tall">TamaEmu im hohen Ei</string>
+    <string name="save_mismatch">Der gespeicherte Spielstand geh\u00f6rt zu einer anderen Firmware und wurde nicht geladen. L\u00f6sche den Spielstand oder importiere die passende Firmware erneut.</string>
+    <string name="import_rom_warn">Beim Import einer anderen Firmware werden die vorhandenen Spielst\u00e4nde gel\u00f6scht \u2013 ein Spielstand ist das Flash-Abbild der alten Firmware und w\u00fcrde die neue \u00fcberschreiben. Exportiere ihn vorher, wenn du ihn behalten willst.</string>
+    <string name="import_rom_go">Trotzdem importieren</string>
     <string name="on">an</string>
     <string name="off">aus</string>
 

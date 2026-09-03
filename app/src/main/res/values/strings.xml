@@ -143,6 +143,9 @@
     <string name="skin_pick_tall">Use own image (tall widget)</string>
     <string name="skin_template_tall">Save template (tall)</string>
     <string name="widget_desc_tall">TamaEmu in a tall egg</string>
+    <string name="save_mismatch">The stored save data belongs to a different firmware and was not loaded. Delete the save data, or import the matching firmware again.</string>
+    <string name="import_rom_warn">Importing different firmware deletes the existing save data \u2013 a save is the flash image of the old firmware and would overwrite the new one. Export it first if you want to keep it.</string>
+    <string name="import_rom_go">Import anyway</string>
     <string name="on">on</string>
     <string name="off">off</string>
 

@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 
 /**
  * Vollbild-App. Zeigt das 128x128-Panel gross und reicht A/B/C durch; der
@@ -245,6 +246,9 @@ class MainActivity : Activity() {
             checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=
             android.content.pm.PackageManager.PERMISSION_GRANTED
         ) requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
+
+        if (EmuNative.isLoaded() && EmuNative.saveMismatch())
+            Toast.makeText(this, R.string.save_mismatch, Toast.LENGTH_LONG).show()
 
         // Wer die App oeffnet, will sie wieder laufen sehen.
         if (this.userQuit) this.userQuit = false

@@ -37,6 +37,22 @@ class EmuService : Service() {
         const val ACTION_RESTART = "com.bernd.tamaemu.RESTART"
         const val ACTION_QUIT = "com.bernd.tamaemu.QUIT"
 
+        /*
+         * Waehrend die Oberflaeche am Kern arbeitet (Zusatzinhalte einspielen,
+         * Platz freigeben, Spielstand einlesen oder loeschen), darf der Takt
+         * des Dienstes NICHT dazwischenfunken. Er ruft sonst mitten im
+         * Entladen bootCore auf - dann laufen zwei Faeden gegeneinander, und
+         * hinterher haengt die Tonerzeugung an einem Kern, den es nicht mehr
+         * gibt. Genau daran war der Ton nach einem DLC-Eingriff weg.
+         */
+        @Volatile var coreBusy = false
+
+        /** Arbeit am Kern, waehrend der Takt pausiert. */
+        fun <T> withCore(block: () -> T): T {
+            coreBusy = true
+            try { return block() } finally { coreBusy = false }
+        }
+
         @Volatile var running = false; private set
 
         fun start(ctx: Context) {
@@ -167,6 +183,10 @@ class EmuService : Service() {
     private val tick = object : Runnable {
         override fun run() {
             val ctx = applicationContext
+            if (coreBusy) {                       // Oberflaeche arbeitet gerade
+                handler.postDelayed(this, 250L)
+                return
+            }
             if (!bootCore(ctx)) { stopSelf(); return }
             EmuWidgetProvider.renderWidgets(ctx)
             ctx.lastWallMs = System.currentTimeMillis()
