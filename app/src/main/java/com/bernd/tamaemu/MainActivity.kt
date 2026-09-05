@@ -235,6 +235,19 @@ class MainActivity : Activity() {
         return liste
     }
 
+    /** Hintergrund und Schriftfarbe aller Knoepfe neu setzen. */
+    private fun farbenAuffrischen() {
+        for (reihe in listOf(btnRow, speedRow)) {
+            for (i in 0 until reihe.childCount) {
+                val v = reihe.getChildAt(i)
+                if (v is Button) {
+                    v.background = knopfHintergrund()
+                    v.setTextColor(knopfSchrift())
+                }
+            }
+        }
+    }
+
     private fun helligkeit(f: Int) =
         (0.299 * ((f shr 16) and 0xFF) + 0.587 * ((f shr 8) and 0xFF) +
          0.114 * (f and 0xFF)) / 255.0
@@ -332,6 +345,12 @@ class MainActivity : Activity() {
         if (EmuFiles.hasRom(this)) {
             if (this.bgRun) EmuService.start(this) else EmuService.bootCore(this)
         }
+        /*
+         * Farbe kann sich in den Einstellungen geaendert haben. Der Bildschirm
+         * wird beim Zurueckkommen nur fortgesetzt, nicht neu gebaut - also
+         * hier auffrischen, statt den Benutzer die App schliessen zu lassen.
+         */
+        farbenAuffrischen()
         panel.fillMode = this.fullscreen && !this.sharpPixels
         if (this.fullscreen) hideSystemBars()
         speedRow.visibility = if (this.speedOnUi) View.VISIBLE else View.GONE
