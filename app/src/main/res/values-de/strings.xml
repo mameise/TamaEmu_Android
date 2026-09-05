@@ -145,6 +145,8 @@
     <string name="rom_switch">Firmware wechseln</string>
     <string name="rom_remove">Firmware entfernen</string>
     <string name="rom_remove_confirm">%s samt Spielst\u00e4nden entfernen? Das l\u00e4sst sich nicht r\u00fcckg\u00e4ngig machen.</string>
+    <string name="btn_color">Knopffarbe: %s</string>
+    <string name="btn_color_hint">Manche Systemthemen zeichnen die Kn\u00f6pfe dunkel auf dunkel. W\u00e4hle hier eine Farbe, wenn sie schlecht zu sehen sind.</string>
     <string name="on">an</string>
     <string name="off">aus</string>
 
@@ -157,5 +159,13 @@
         <item>Lila</item>
         <item>Orange</item>
         <item>Grau</item>
+    </string-array>
+    <string-array name="btn_colors">
+        <item>Hell</item>
+        <item>Dunkel</item>
+        <item>T\u00fcrkis</item>
+        <item>Rosa</item>
+        <item>Blau</item>
+        <item>Gelb</item>
     </string-array>
 </resources>

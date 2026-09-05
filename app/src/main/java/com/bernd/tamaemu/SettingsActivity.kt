@@ -81,6 +81,10 @@ class SettingsActivity : Activity() {
         hint(R.string.stay_awake_hint)
 
         header(R.string.sec_display)
+        stateButton({ getString(R.string.btn_color, btnColorName()) }) {
+            btnColor = (btnColor + 1) % 6
+        }
+        hint(R.string.btn_color_hint)
         stateButton({ getString(R.string.egg_color, eggName()) }) {
             eggColor = (eggColor + 1) % EggRenderer.EGG_COUNT
             EmuWidgetProvider.renderWidgets(this, force = true)
@@ -784,6 +788,9 @@ class SettingsActivity : Activity() {
     }
 
     // --------------------------------------------------------- Beschriftungen
+
+    private fun btnColorName(): String =
+        resources.getStringArray(R.array.btn_colors)[btnColor.coerceIn(0, 5)]
 
     private fun eggName(): String =
         resources.getStringArray(R.array.egg_colors)[eggColor.coerceIn(0, EggRenderer.EGG_COUNT - 1)]

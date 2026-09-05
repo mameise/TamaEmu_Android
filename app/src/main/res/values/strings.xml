@@ -147,6 +147,8 @@
     <string name="rom_switch">Switch firmware</string>
     <string name="rom_remove">Remove firmware</string>
     <string name="rom_remove_confirm">Remove %s together with its save data? This cannot be undone.</string>
+    <string name="btn_color">Button colour: %s</string>
+    <string name="btn_color_hint">Some system themes draw the buttons dark on dark. Pick a colour here if they are hard to see.</string>
     <string name="on">on</string>
     <string name="off">off</string>
 
@@ -159,5 +161,13 @@
         <item>Purple</item>
         <item>Orange</item>
         <item>Grey</item>
+    </string-array>
+    <string-array name="btn_colors">
+        <item>Light</item>
+        <item>Dark</item>
+        <item>Teal</item>
+        <item>Pink</item>
+        <item>Blue</item>
+        <item>Yellow</item>
     </string-array>
 </resources>

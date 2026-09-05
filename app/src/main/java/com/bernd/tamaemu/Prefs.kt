@@ -30,6 +30,16 @@ var Context.eggColor: Int               // Ei-Gehaeusefarbe (Index in EggRendere
 var Context.pixelGrid: Boolean          // sichtbares LCD-Raster im Vollbild
     get() = emuSp().getBoolean("grid", false); set(v) = putB("grid", v)
 
+/**
+ * Farbe der Knoepfe im Hauptbildschirm.
+ *
+ * Ohne eigene Angabe uebernimmt Android das Aussehen des Systemthemas - und
+ * bei manchen Herstelleroberflaechen kommt dabei schwarz auf schwarz heraus.
+ * Deshalb zeichnen wir die Knoepfe selbst, mit fest gewaehlter Farbe.
+ */
+var Context.btnColor: Int
+    get() = emuSp().getInt("btncolor", 0); set(v) = putI("btncolor", v)
+
 // --- Bedienung ---
 /** Tempo-Knoepfe zusaetzlich auf dem Hauptbildschirm zeigen. */
 var Context.speedOnUi: Boolean

@@ -134,7 +134,11 @@ class MainActivity : Activity() {
         row.addView(holdButton("C", EmuNative.BTN_C))
         row.addView(Button(this).apply {
             text = "\u2699"   // Zahnrad
-            layoutParams = LinearLayout.LayoutParams(0, btnH, 0.6f)
+            background = knopfHintergrund()
+            setTextColor(knopfSchrift())
+            layoutParams = LinearLayout.LayoutParams(0, btnH, 0.6f).apply {
+                leftMargin = (3 * resources.displayMetrics.density).toInt()
+            }
             setOnClickListener { openSettings() }
         })
 
@@ -194,8 +198,35 @@ class MainActivity : Activity() {
         }
     }
 
+    /** Palette: hell, dunkel, und ein paar kraeftige Farben. */
+    private val paletteBg = intArrayOf(
+        0xFFECEEF0.toInt(), 0xFF3A3F45.toInt(), 0xFF4FB6AC.toInt(),
+        0xFFE9738D.toInt(), 0xFF5B8DEF.toInt(), 0xFFF2B134.toInt()
+    )
+
+    /** Knopf-Hintergrund selbst zeichnen, damit kein Thema dazwischenfunkt. */
+    private fun knopfHintergrund(): android.graphics.drawable.Drawable {
+        val f = paletteBg[this.btnColor.coerceIn(0, paletteBg.size - 1)]
+        return android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = 12 * resources.displayMetrics.density
+            setColor(f)
+            setStroke((2 * resources.displayMetrics.density).toInt(), 0x66000000)
+        }
+    }
+
+    /** Schrift dunkel oder hell, je nachdem wie hell der Grund ist. */
+    private fun knopfSchrift(): Int {
+        val f = paletteBg[this.btnColor.coerceIn(0, paletteBg.size - 1)]
+        val hell = (0.299 * ((f shr 16) and 0xFF) + 0.587 * ((f shr 8) and 0xFF) +
+                    0.114 * (f and 0xFF)) / 255.0
+        return if (hell > 0.6) 0xFF222222.toInt() else Color.WHITE
+    }
+
     private fun speedButton(label: String, onClick: () -> Unit): Button = Button(this).apply {
         text = label
+        background = knopfHintergrund()
+        setTextColor(knopfSchrift())
         layoutParams = LinearLayout.LayoutParams(0, (44 * resources.displayMetrics.density).toInt(), 1f)
         setOnClickListener { onClick() }
     }
@@ -228,7 +259,13 @@ class MainActivity : Activity() {
 
     private fun holdButton(label: String, mask: Int): Button = Button(this).apply {
         text = label
-        layoutParams = LinearLayout.LayoutParams(0, btnH, 1f)
+        background = knopfHintergrund()
+        setTextColor(knopfSchrift())
+        textSize = 18f
+        layoutParams = LinearLayout.LayoutParams(0, btnH, 1f).apply {
+            leftMargin = (3 * resources.displayMetrics.density).toInt()
+            rightMargin = (3 * resources.displayMetrics.density).toInt()
+        }
         setOnTouchListener { v, e ->
             when (e.action) {
                 MotionEvent.ACTION_DOWN -> { Input.down(mask); v.isPressed = true }

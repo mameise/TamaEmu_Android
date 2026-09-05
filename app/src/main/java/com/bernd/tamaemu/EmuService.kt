@@ -212,6 +212,12 @@ class EmuService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        /* Zwischenspeicher aufraeumen: Reste vom Import oder von Zusatzinhalten
+         * werden nicht mehr gebraucht und wachsen sonst mit. */
+        runCatching {
+            java.io.File(cacheDir, "import.bin").delete()
+            java.io.File(cacheDir, "dlc").listFiles()?.forEach { it.delete() }
+        }
         running = true
         makeChannel()
         startForeground(NOTIF_ID, note())
