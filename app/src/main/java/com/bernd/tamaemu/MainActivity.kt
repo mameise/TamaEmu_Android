@@ -204,23 +204,54 @@ class MainActivity : Activity() {
         0xFFE9738D.toInt(), 0xFF5B8DEF.toInt(), 0xFFF2B134.toInt()
     )
 
-    /** Knopf-Hintergrund selbst zeichnen, damit kein Thema dazwischenfunkt. */
+    /**
+     * Knopf-Hintergrund selbst zeichnen, damit kein Thema dazwischenfunkt -
+     * mit zwei Zustaenden, sonst fehlt beim Druecken jede Rueckmeldung.
+     * Gedrueckt wird der Ton abgedunkelt (bei dunklen Farben aufgehellt) und
+     * der Rand kraeftiger.
+     */
     private fun knopfHintergrund(): android.graphics.drawable.Drawable {
         val f = paletteBg[this.btnColor.coerceIn(0, paletteBg.size - 1)]
-        return android.graphics.drawable.GradientDrawable().apply {
-            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-            cornerRadius = 12 * resources.displayMetrics.density
-            setColor(f)
-            setStroke((2 * resources.displayMetrics.density).toInt(), 0x66000000)
-        }
+        val d = resources.displayMetrics.density
+
+        fun flaeche(farbe: Int, rand: Int): android.graphics.drawable.GradientDrawable =
+            android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                cornerRadius = 12 * d
+                setColor(farbe)
+                setStroke((2 * d).toInt(), rand)
+            }
+
+        val hell = helligkeit(f)
+        val gedrueckt = if (hell > 0.5) mische(f, Color.BLACK, 0.22f)
+                        else mische(f, Color.WHITE, 0.25f)
+
+        val liste = android.graphics.drawable.StateListDrawable()
+        liste.addState(
+            intArrayOf(android.R.attr.state_pressed),
+            flaeche(gedrueckt, 0x99000000.toInt())
+        )
+        liste.addState(intArrayOf(), flaeche(f, 0x66000000))
+        return liste
+    }
+
+    private fun helligkeit(f: Int) =
+        (0.299 * ((f shr 16) and 0xFF) + 0.587 * ((f shr 8) and 0xFF) +
+         0.114 * (f and 0xFF)) / 255.0
+
+    private fun mische(a: Int, b: Int, anteil: Float): Int {
+        fun k(v: Int, w: Int) = (v + (w - v) * anteil).toInt().coerceIn(0, 255)
+        return Color.rgb(
+            k((a shr 16) and 0xFF, (b shr 16) and 0xFF),
+            k((a shr 8) and 0xFF, (b shr 8) and 0xFF),
+            k(a and 0xFF, b and 0xFF)
+        )
     }
 
     /** Schrift dunkel oder hell, je nachdem wie hell der Grund ist. */
     private fun knopfSchrift(): Int {
         val f = paletteBg[this.btnColor.coerceIn(0, paletteBg.size - 1)]
-        val hell = (0.299 * ((f shr 16) and 0xFF) + 0.587 * ((f shr 8) and 0xFF) +
-                    0.114 * (f and 0xFF)) / 255.0
-        return if (hell > 0.6) 0xFF222222.toInt() else Color.WHITE
+        return if (helligkeit(f) > 0.6) 0xFF222222.toInt() else Color.WHITE
     }
 
     private fun speedButton(label: String, onClick: () -> Unit): Button = Button(this).apply {
@@ -250,9 +281,18 @@ class MainActivity : Activity() {
             else -> 0
         }
         if (maske == 0) return super.dispatchKeyEvent(e)
+        /* Auch beim Gamepad den passenden Knopf optisch druecken, damit man
+         * sieht, was ankommt. */
+        val knopf = when (maske) {
+            EmuNative.BTN_A -> btnRow.getChildAt(0)
+            EmuNative.BTN_B -> btnRow.getChildAt(1)
+            else -> btnRow.getChildAt(2)
+        }
         when (e.action) {
-            android.view.KeyEvent.ACTION_DOWN -> if (e.repeatCount == 0) Input.down(maske)
-            android.view.KeyEvent.ACTION_UP -> Input.up(maske)
+            android.view.KeyEvent.ACTION_DOWN -> if (e.repeatCount == 0) {
+                Input.down(maske); knopf?.isPressed = true
+            }
+            android.view.KeyEvent.ACTION_UP -> { Input.up(maske); knopf?.isPressed = false }
         }
         return true
     }

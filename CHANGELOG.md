@@ -90,7 +90,8 @@ producing a black screen.
 The on-screen buttons used the system theme, and some manufacturer skins draw
 them dark on a dark background. They are now drawn by the app itself, and the
 colour is a setting (light, dark, teal, pink, blue, yellow) with the label
-colour chosen automatically for contrast.
+colour chosen automatically for contrast. Pressing a button darkens it (or
+lightens a dark one), including when the press comes from a gamepad.
 
 ### Added — controls and display
 
