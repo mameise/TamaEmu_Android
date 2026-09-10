@@ -93,6 +93,17 @@ colour is a setting (light, dark, teal, pink, blue, yellow) with the label
 colour chosen automatically for contrast. Pressing a button darkens it (or
 lightens a dark one), including when the press comes from a gamepad.
 
+### Fixed — buttons too slow for some games
+
+Every press was held for a fixed 120 ms so the firmware's debounce would see
+it. Measured on the P's, the firmware scans its keys every few milliseconds on
+active screens and only every 100–200 ms when idle — so 120 ms was far more
+than needed, and two quick taps merged into one long press.
+
+The hold time is now 60 ms by default and adjustable (40/60/90/120 ms), and a
+press arriving while the previous one is still held is queued and replayed
+after a short gap instead of merging into it.
+
 ### Added — controls and display
 
 - Gamepad support. Buttons are assigned by pressing them, not by looking up key

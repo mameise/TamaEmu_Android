@@ -115,6 +115,11 @@ class SettingsActivity : Activity() {
         stateButton({ getString(R.string.show_buttons, onOff(showButtons)) }) {
             showButtons = !showButtons
         }
+        stateButton({ getString(R.string.hold_ms, this.holdMs) }) {
+            this.holdMs = nextIn(this.holdMs, intArrayOf(40, 60, 90, 120))
+            EmuNative.setHoldMs(this.holdMs)
+        }
+        hint(R.string.hold_hint)
         stateButton({ getString(R.string.gamepad, onOff(gamepad)) }) { gamepad = !gamepad }
         button(R.string.pad_config) { padDialog() }
         hint(R.string.controls_hint)

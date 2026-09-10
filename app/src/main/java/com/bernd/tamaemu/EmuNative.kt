@@ -36,6 +36,8 @@ object EmuNative {
     external fun buttonUp(bit: Int)
     /** Ein sauberer, kurzer Druck (fuer Widget-Taps). */
     external fun tap(bit: Int)
+    /** Mindesthaltezeit eines Tastendrucks in Millisekunden. */
+    external fun setHoldMs(ms: Int)
 
     external fun setSpeed(mult: Int)
     external fun speedStep(dir: Int): Int

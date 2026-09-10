@@ -149,6 +149,8 @@
     <string name="rom_remove_confirm">Remove %s together with its save data? This cannot be undone.</string>
     <string name="btn_color">Button colour: %s</string>
     <string name="btn_color_hint">Some system themes draw the buttons dark on dark. Pick a colour here if they are hard to see.</string>
+    <string name="hold_ms">Button hold time: %d ms</string>
+    <string name="hold_hint">How long a press is held for the emulated device. Too short and the firmware misses it, too long and rapid tapping in games merges into one press. 60 ms suits most games; raise it if presses go missing.</string>
     <string name="on">on</string>
     <string name="off">off</string>
 

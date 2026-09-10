@@ -19,7 +19,17 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
-#define MIN_HOLD_MS 120   /* kuerzere Druecke schluckt die Firmware-Entprellung */
+/*
+ * Mindesthaltezeit eines Tastendrucks.
+ *
+ * Im Labor gemessen (Tamagotchi P's): die Firmware fragt die Tasten in aktiven
+ * Schirmen alle paar Millisekunden ab, im Leerlauf nur alle 100 bis 200 ms.
+ * Die frueheren festen 120 ms waren also weit mehr als noetig - und sie
+ * verhinderten schnelles Tippen, weil zwei Druecke innerhalb der Haltezeit zu
+ * einem langen verschmolzen. Jetzt einstellbar, Vorgabe 60 ms.
+ */
+#define MIN_HOLD_MS 60
+#define GAP_MS      25    /* Pause zwischen zwei Druecken, sonst sieht die Firmware nur einen */
 #define TAP_MS      160
 
 static Emu        E;
@@ -33,6 +43,8 @@ static volatile int  LOADED;
 static volatile int  ASLEEP;
 static volatile uint8_t HELD;
 static volatile int64_t HOLD_UNTIL[3];
+static volatile int     QUEUED[3];        /* vorgemerkte Folgedruecke */
+static volatile int     HOLD_MS = MIN_HOLD_MS;
 static volatile int  SPEED = 1;
 static volatile int  STAYAWAKE;
 static char SAVPATH[600], RAMPATH[620], STATEPATH[620], BUILDID[32];
@@ -121,11 +133,23 @@ static uint64_t now_ns(void)
     return (uint64_t)ts.tv_sec * 1000000000ull + (uint64_t)ts.tv_nsec;
 }
 
+/*
+ * Kommt ein zweiter Druck, waehrend der erste noch gehalten wird, darf er nicht
+ * einfach verschmelzen - die Firmware saehe sonst einen langen statt zwei
+ * kurze. Er wird deshalb vorgemerkt und nach einer kurzen Pause nachgeholt.
+ */
 static uint8_t cur_mask(void)
 {
     int64_t t = now_ms();
     uint8_t m = HELD;
-    for (int i = 0; i < 3; i++) if (HOLD_UNTIL[i] > t) m |= (uint8_t)(1 << i);
+    for (int i = 0; i < 3; i++) {
+        if (HOLD_UNTIL[i] > t) { m |= (uint8_t)(1 << i); continue; }
+        if (QUEUED[i] && t >= HOLD_UNTIL[i] + GAP_MS) {
+            QUEUED[i]--;
+            HOLD_UNTIL[i] = t + HOLD_MS;
+            m |= (uint8_t)(1 << i);
+        }
+    }
     return m;
 }
 
@@ -561,7 +585,15 @@ Java_com_bernd_tamaemu_EmuNative_buttonDown(JNIEnv *env, jclass c, jint bit)
 {
     if (bit < 1 || bit > 4) return;
     HELD |= (uint8_t)bit;
-    for (int i = 0; i < 3; i++) if (bit & (1 << i)) HOLD_UNTIL[i] = now_ms() + MIN_HOLD_MS;
+    int64_t t = now_ms();
+    for (int i = 0; i < 3; i++) {
+        if (!(bit & (1 << i))) continue;
+        if (HOLD_UNTIL[i] > t) {
+            if (QUEUED[i] < 2) QUEUED[i]++;   /* laeuft noch: vormerken */
+        } else {
+            HOLD_UNTIL[i] = t + HOLD_MS;
+        }
+    }
 }
 
 JNIEXPORT void JNICALL
@@ -573,7 +605,12 @@ Java_com_bernd_tamaemu_EmuNative_buttonUp(JNIEnv *env, jclass c, jint bit)
 JNIEXPORT void JNICALL
 Java_com_bernd_tamaemu_EmuNative_tap(JNIEnv *env, jclass c, jint bit)
 {
-    for (int i = 0; i < 3; i++) if (bit & (1 << i)) HOLD_UNTIL[i] = now_ms() + TAP_MS;
+    int64_t t = now_ms();
+    for (int i = 0; i < 3; i++) {
+        if (!(bit & (1 << i))) continue;
+        if (HOLD_UNTIL[i] > t) { if (QUEUED[i] < 2) QUEUED[i]++; }
+        else HOLD_UNTIL[i] = t + (HOLD_MS > TAP_MS ? HOLD_MS : TAP_MS);
+    }
 }
 
 JNIEXPORT void JNICALL
@@ -1182,4 +1219,13 @@ Java_com_bernd_tamaemu_EmuNative_audioReset(JNIEnv *env, jclass c)
     aud_on = 0;
     aud_phase = 0.0;
     aud_frac = 0.0;
+}
+
+/** Mindesthaltezeit eines Tastendrucks in Millisekunden. */
+JNIEXPORT void JNICALL
+Java_com_bernd_tamaemu_EmuNative_setHoldMs(JNIEnv *env, jclass c, jint ms)
+{
+    if (ms < 20) ms = 20;
+    if (ms > 200) ms = 200;
+    HOLD_MS = ms;
 }

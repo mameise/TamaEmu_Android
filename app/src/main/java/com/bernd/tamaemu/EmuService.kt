@@ -116,6 +116,7 @@ class EmuService : Service() {
             EmuNative.setSpeed(ctx.speed)
             EmuNative.setStayAwake(ctx.stayAwake)
             EmuNative.linkLead(ctx.linkLeadUs)
+            EmuNative.setHoldMs(ctx.holdMs)
             EmuNative.callHookSet(ctx.callHooksFor(ctx.device))
             EmuNative.callMelody(true)
             EmuNative.callExpiry(ctx.callExpiryMin * 60)

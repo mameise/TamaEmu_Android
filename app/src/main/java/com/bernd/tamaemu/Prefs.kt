@@ -40,6 +40,14 @@ var Context.pixelGrid: Boolean          // sichtbares LCD-Raster im Vollbild
 var Context.btnColor: Int
     get() = emuSp().getInt("btncolor", 0); set(v) = putI("btncolor", v)
 
+/**
+ * Mindesthaltezeit eines Tastendrucks. Zu kurz, und die Firmware sieht ihn
+ * nicht; zu lang, und schnelles Tippen in Spielen wird unmoeglich. Im Labor
+ * gemessen: aktive Schirme fragen alle paar Millisekunden ab.
+ */
+var Context.holdMs: Int
+    get() = emuSp().getInt("holdms", 60); set(v) = putI("holdms", v)
+
 // --- Bedienung ---
 /** Tempo-Knoepfe zusaetzlich auf dem Hauptbildschirm zeigen. */
 var Context.speedOnUi: Boolean

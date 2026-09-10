@@ -147,6 +147,8 @@
     <string name="rom_remove_confirm">%s samt Spielst\u00e4nden entfernen? Das l\u00e4sst sich nicht r\u00fcckg\u00e4ngig machen.</string>
     <string name="btn_color">Knopffarbe: %s</string>
     <string name="btn_color_hint">Manche Systemthemen zeichnen die Kn\u00f6pfe dunkel auf dunkel. W\u00e4hle hier eine Farbe, wenn sie schlecht zu sehen sind.</string>
+    <string name="hold_ms">Tastendruck h\u00e4lt: %d ms</string>
+    <string name="hold_hint">Wie lange ein Druck f\u00fcr das emulierte Ger\u00e4t gehalten wird. Zu kurz, und die Firmware bemerkt ihn nicht; zu lang, und schnelles Tippen in Spielen verschmilzt zu einem Druck. 60 ms passen f\u00fcr die meisten Spiele; h\u00f6her stellen, wenn Dr\u00fccke verlorengehen.</string>
     <string name="on">an</string>
     <string name="off">aus</string>
 
