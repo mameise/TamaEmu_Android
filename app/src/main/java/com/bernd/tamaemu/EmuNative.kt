@@ -65,6 +65,8 @@ object EmuNative {
 
     // --- Zeitausgleich ---
     external fun catchUp(secs: Double, mult: Int)
+    /** Nur den Faktor setzen; 0 schaltet das Nachholen aus. */
+    external fun catchMult(mult: Int)
     external fun catchLeft(): Double
     external fun driftNow(): Double
 

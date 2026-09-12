@@ -155,6 +155,7 @@ class SettingsActivity : Activity() {
         }
         stateButton({ getString(R.string.catchup, catchLabel()) }) {
             catchupMult = nextIn(catchupMult, intArrayOf(0, 30, 60, 120))
+            EmuNative.catchMult(catchupMult)   // sofort wirksam, nicht erst beim Neustart
         }
         hint(R.string.catchup_hint)
 

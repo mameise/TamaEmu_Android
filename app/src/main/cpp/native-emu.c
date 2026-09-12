@@ -352,7 +352,9 @@ static void *emu_thread(void *arg)
              * Drift. Jetzt wird sie als Rueckstand vermerkt und nachgeholt. */
             double lost = (double)(now - deadline) / 1e9;
             DRIFT_LOST += lost;
-            CATCH_DEF += lost;
+            /* Nur sammeln, wenn Nachholen ueberhaupt eingeschaltet ist. Sonst
+             * staut sich ein Rueckstand an, den niemand bestellt hat. */
+            if (CATCH_MULT > 1) CATCH_DEF += lost;
             deadline = now;
         }
         deadline += 16666667ull;
@@ -823,12 +825,35 @@ Java_com_bernd_tamaemu_EmuNative_resetRom(JNIEnv *env, jclass c)
 JNIEXPORT void JNICALL
 Java_com_bernd_tamaemu_EmuNative_catchUp(JNIEnv *env, jclass c, jdouble secs, jint mult)
 {
-    if (mult < 2) mult = 2;
     if (mult > 120) mult = 120;      /* darueber kann der 1/64-s-RTC-IRQ Takte verlieren */
+    if (mult < 0) mult = 0;
     if (secs < 0) secs = 0;
     CATCH_MULT = mult;
     CATCH_DEF = secs;
     LOGI("[nachlauf] %.0f s offen, Faktor x%d", (double)secs, mult);
+}
+
+/**
+ * Nur den Faktor setzen, ohne einen offenen Rueckstand anzutasten.
+ * 0 oder 1 schaltet das Nachholen AUS und verwirft den Rueckstand.
+ *
+ * Vorher gab es das nicht: wer das Nachholen abschaltete, liess CATCH_MULT
+ * einfach auf seinem Vorgabewert 60 stehen. Die Frist-Korrektur schrieb
+ * weiterhin verlorene Zeit ins Rueckstandskonto, und der Kern holte sie mit
+ * Faktor 5 nach - obwohl "x1" eingestellt war. Genau das war der Befund.
+ */
+JNIEXPORT void JNICALL
+Java_com_bernd_tamaemu_EmuNative_catchMult(JNIEnv *env, jclass c, jint mult)
+{
+    if (mult > 120) mult = 120;
+    if (mult < 0) mult = 0;
+    CATCH_MULT = mult;
+    if (mult <= 1) {
+        CATCH_DEF = 0.0;
+        DRIFT_NOW = 0.0;
+        E.rtc_mult = SPEED;      /* sofort zurueck auf das eingestellte Tempo */
+    }
+    LOGI("[nachlauf] Faktor x%d", mult);
 }
 
 /** Noch offene Nachlaufzeit in Sekunden (0 = fertig). */

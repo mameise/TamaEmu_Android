@@ -145,6 +145,9 @@ class EmuService : Service() {
             val mult = ctx.catchupMult
             val last = ctx.lastWallMs
             ctx.lastWallMs = System.currentTimeMillis()
+            // Immer setzen, auch die Null: sonst bleibt der Vorgabewert stehen
+            // und der Kern holt nach, obwohl niemand es wollte.
+            EmuNative.catchMult(mult)
             if (mult < 2 || last <= 0L) return
             val gapMs = System.currentTimeMillis() - last
             if (gapMs < 60_000L) return

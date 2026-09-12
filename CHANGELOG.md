@@ -93,6 +93,22 @@ colour is a setting (light, dark, teal, pink, blue, yellow) with the label
 colour chosen automatically for contrast. Pressing a button darkens it (or
 lightens a dark one), including when the press comes from a gamepad.
 
+### Fixed — "catch up lost time" kept working when switched off
+
+With the option off, the game clock still ran fast in bursts. Three things came
+together: the native multiplier defaults to 60 and was only ever set by the
+catch-up call, which the app skipped entirely when the option was off; the
+frame deadline kept booking any lateness over 250 ms as a deficit; and the
+catch-up logic then ran that deficit off at five times speed, overriding the
+user's setting.
+
+The multiplier can now be set to zero to disable catch-up properly (the old
+code clamped it to a minimum of two), the app sets it on every boot including
+the zero, lateness is only booked while catch-up is enabled, and toggling the
+setting takes effect immediately instead of at the next restart.
+
+Reported with a code analysis that named the right chain — thank you.
+
 ### Fixed — buttons too slow for some games
 
 Every press was held for a fixed 120 ms so the firmware's debounce would see
