@@ -31,6 +31,8 @@ object EmuNative {
 
     /** Kopiert 128x128 ARGB ins Array, gibt die Bildnummer zurueck. */
     external fun frame(px: IntArray): Long
+    /** Nur die Bildnummer, ohne zu kopieren. */
+    external fun frameNo(): Long
 
     external fun buttonDown(bit: Int)
     external fun buttonUp(bit: Int)

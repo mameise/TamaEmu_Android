@@ -36,23 +36,37 @@ class MainActivity : Activity() {
     private lateinit var speedLabel: TextView
     private var btnH = 0
 
-    private val loop = object : Runnable {
-        override fun run() {
+    /*
+     * Anzeige im Takt des Bildschirms statt alle 33 ms.
+     *
+     * Der Kern erzeugt 60 Bilder je Sekunde. Wer nur alle 33 ms nachschaut,
+     * zeigt jedes zweite gar nicht - bei Spielen mit schneller Bewegung sieht
+     * das ruckelig aus. Choreographer meldet sich zu jedem Bildwechsel des
+     * Geraets, also 60 Mal je Sekunde oder oefter.
+     *
+     * Kopiert werden die Bildpunkte nur, wenn wirklich ein neues Bild vorliegt;
+     * dafuer gibt es frameNo(), das nichts umschaufelt.
+     */
+    private val loop = object : android.view.Choreographer.FrameCallback {
+        override fun doFrame(frameTimeNanos: Long) {
             if (!running) return
             if (EmuFiles.hasRom(this@MainActivity) && EmuNative.isLoaded()) {
-                val n = EmuNative.frame(px)
+                val n = EmuNative.frameNo()
                 if (n != lastFrame) {
                     lastFrame = n
+                    EmuNative.frame(px)
                     EggRenderer.pushPixels(px)
                     panel.invalidate()
                 }
-                hint.visibility = View.GONE
-                panel.visibility = View.VISIBLE
-            } else {
+                if (hint.visibility != View.GONE) {
+                    hint.visibility = View.GONE
+                    panel.visibility = View.VISIBLE
+                }
+            } else if (hint.visibility != View.VISIBLE) {
                 hint.visibility = View.VISIBLE
                 panel.visibility = View.GONE
             }
-            ui.postDelayed(this, 33)   // ~30 fps Anzeige
+            android.view.Choreographer.getInstance().postFrameCallback(this)
         }
     }
 
@@ -361,13 +375,13 @@ class MainActivity : Activity() {
         setSpeed(this.speed)
 
         running = true
-        ui.post(loop)
+        android.view.Choreographer.getInstance().postFrameCallback(loop)
     }
 
     override fun onPause() {
         super.onPause()
         running = false
-        ui.removeCallbacks(loop)
+        android.view.Choreographer.getInstance().removeFrameCallback(loop)
         Input.up(7)
         if (EmuNative.isLoaded()) {
             EmuNative.persist(false)

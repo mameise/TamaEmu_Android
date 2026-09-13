@@ -93,6 +93,17 @@ colour is a setting (light, dark, teal, pink, blue, yellow) with the label
 colour chosen automatically for contrast. Pressing a button darkens it (or
 lightens a dark one), including when the press comes from a gamepad.
 
+### Fixed — display ran at half the frame rate
+
+The emulator core renders 60 frames a second, but the app only looked for a new
+one every 33 ms — so every second frame was never shown. Games with fast
+movement looked choppy compared to the desktop and web builds, which present
+every frame.
+
+The screen now redraws in step with the device's own refresh (Choreographer),
+so 60 frames a second or more. Pixels are only copied when a new frame actually
+exists, which keeps the extra cost down.
+
 ### Fixed — "catch up lost time" kept working when switched off
 
 With the option off, the game clock still ran fast in bursts. Three things came

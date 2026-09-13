@@ -1254,3 +1254,16 @@ Java_com_bernd_tamaemu_EmuNative_setHoldMs(JNIEnv *env, jclass c, jint ms)
     if (ms > 200) ms = 200;
     HOLD_MS = ms;
 }
+
+/**
+ * Nur die Bildnummer, ohne die Bildpunkte zu kopieren.
+ *
+ * Damit kann die Anzeige im Takt des Bildschirms nachfragen, ohne bei jedem
+ * Mal 64 KB umzuschaufeln - kopiert wird erst, wenn wirklich ein neues Bild
+ * vorliegt.
+ */
+JNIEXPORT jlong JNICALL
+Java_com_bernd_tamaemu_EmuNative_frameNo(JNIEnv *env, jclass c)
+{
+    return (jlong)FRAME_NO;
+}
