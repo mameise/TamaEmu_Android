@@ -46,7 +46,7 @@ var Context.btnColor: Int
  * gemessen: aktive Schirme fragen alle paar Millisekunden ab.
  */
 var Context.holdMs: Int
-    get() = emuSp().getInt("holdms", 60); set(v) = putI("holdms", v)
+    get() = emuSp().getInt("holdms", 0); set(v) = putI("holdms", v)
 
 // --- Bedienung ---
 /** Tempo-Knoepfe zusaetzlich auf dem Hauptbildschirm zeigen. */

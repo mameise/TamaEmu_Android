@@ -115,8 +115,11 @@ class SettingsActivity : Activity() {
         stateButton({ getString(R.string.show_buttons, onOff(showButtons)) }) {
             showButtons = !showButtons
         }
-        stateButton({ getString(R.string.hold_ms, this.holdMs) }) {
-            this.holdMs = nextIn(this.holdMs, intArrayOf(40, 60, 90, 120))
+        stateButton({
+            if (this.holdMs <= 0) getString(R.string.hold_off)
+            else getString(R.string.hold_ms, this.holdMs)
+        }) {
+            this.holdMs = nextIn(this.holdMs, intArrayOf(0, 40, 60, 90))
             EmuNative.setHoldMs(this.holdMs)
         }
         hint(R.string.hold_hint)

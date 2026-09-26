@@ -93,6 +93,19 @@ colour is a setting (light, dark, teal, pink, blue, yellow) with the label
 colour chosen automatically for contrast. Pressing a button darkens it (or
 lightens a dark one), including when the press comes from a gamepad.
 
+### Fixed — sound and buttons lagged behind the action
+
+Compared against the desktop build, three delays turned out to be ours alone:
+
+- Sound waited for 150 ms of buffered audio before it started playing, on top
+  of an 80 ms output buffer. That delay stayed for the whole session, so sound
+  trailed what was on screen. Now 40 ms of pre-buffer and a 40 ms output
+  buffer, and a backlog of more than 125 ms in the ring is dropped rather than
+  played late — the desktop resyncs at 200 ms for the same reason.
+- Every button press was stretched to a minimum length. The desktop passes key
+  presses straight through, and so do we now by default; the minimum is still
+  available as a setting for anyone whose short taps go missing.
+
 ### Fixed — display ran at half the frame rate
 
 The emulator core renders 60 frames a second, but the app only looked for a new

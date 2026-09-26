@@ -590,6 +590,7 @@ Java_com_bernd_tamaemu_EmuNative_buttonDown(JNIEnv *env, jclass c, jint bit)
     int64_t t = now_ms();
     for (int i = 0; i < 3; i++) {
         if (!(bit & (1 << i))) continue;
+        if (HOLD_MS <= 0) continue;           /* durchreichen wie im Original */
         if (HOLD_UNTIL[i] > t) {
             if (QUEUED[i] < 2) QUEUED[i]++;   /* laeuft noch: vormerken */
         } else {
@@ -751,7 +752,18 @@ Java_com_bernd_tamaemu_EmuNative_audioPull(JNIEnv *env, jclass c,
     if (frames < 1) return 0;
     if (frames > (jint)(sizeof buf / sizeof buf[0])) frames = (jint)(sizeof buf / sizeof buf[0]);
 
+    /*
+     * Rueckstau begrenzen. Liegen mehr als rund 120 ms im Ring, ist der Ton
+     * gegenueber Bild und Tastendruck spuerbar zu spaet - dann lieber das
+     * Aelteste verwerfen. Die Desktop-Fassung macht dasselbe, sie setzt bei
+     * 200 ms Warteschlange neu auf.
+     */
     unsigned have = AUD_W - AUD_R;
+    unsigned max_stau = (unsigned)(AUD_RATE / 8);      /* 125 ms */
+    if (have > max_stau) {
+        AUD_R = AUD_W - max_stau;
+        have = max_stau;
+    }
     int n = 0;
     while (n < frames && (unsigned)n < have) {
         buf[n] = AUDR[(AUD_R + (unsigned)n) % AUD_RING];
@@ -1250,7 +1262,7 @@ Java_com_bernd_tamaemu_EmuNative_audioReset(JNIEnv *env, jclass c)
 JNIEXPORT void JNICALL
 Java_com_bernd_tamaemu_EmuNative_setHoldMs(JNIEnv *env, jclass c, jint ms)
 {
-    if (ms < 20) ms = 20;
+    if (ms < 0) ms = 0;               /* 0 = durchreichen, wie die Desktop-Fassung */
     if (ms > 200) ms = 200;
     HOLD_MS = ms;
 }

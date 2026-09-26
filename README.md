@@ -16,8 +16,8 @@ you when it needs attention.
 ## Features
 
 - Full-screen emulator with A/B/C buttons
-- Three home screen widgets with working buttons: compact, large, and a plain
-  one without the egg
+- Four home screen widgets with working buttons: compact, large, tall, and a
+  plain one without the egg
 - Replace the egg with your own artwork — the app hands you a template showing
   where the screen and buttons sit
 - Runs in the background as a foreground service
@@ -27,6 +27,8 @@ you when it needs attention.
 - Notification and vibration when your Tama calls for attention
 - Downloadable content (games, items, wallpapers) including slot management
 - Visits between two phones over Wi-Fi
+- Keeps several firmwares side by side and switches between them, each with
+  its own save data
 - Save data export and import
 - Gamepad support, with the buttons assigned by simply pressing them
 - English and German, switchable inside the app
@@ -78,6 +80,19 @@ Encoding the keystore on Windows, in **PowerShell** (not `cmd`, and not
 
 The result is one long line, roughly 3600 characters for a 2.7 KB keystore.
 Keep that file outside the repository.
+
+**Why this matters for updates.** Android only installs an update over an
+existing app when both APKs carry the *same* signature. Two consequences:
+
+- Use one keystore for every build you hand out. If the CI signs with a
+  different key than your local builds, users cannot update between them.
+- Without the secrets the workflow falls back to the debug key, which is
+  generated per build machine — so those APKs cannot update each other either.
+  The build log says which key was used and prints the certificate
+  fingerprint; check that line if an update is refused.
+
+If the signature ever has to change, users must uninstall once. Tell them to
+export their save data first (Settings, Save data, Export).
 
 ## Licence and credits
 

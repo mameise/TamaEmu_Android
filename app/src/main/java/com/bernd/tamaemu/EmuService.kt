@@ -343,11 +343,15 @@ class EmuService : Service() {
             var track = baueTrack(sr, blk) ?: run { sndRun = false; return@Thread }
             var fehler = 0
             EmuNative.audioStart(sr)
-            // Vorrat sammeln, bevor die Ausgabe anlaeuft: rund 150 ms. Weniger
-            // hiess, dass jeder Schub der Emulation knapp reichte.
+            /*
+             * Vorrat vor dem Start: rund 40 ms statt 150. Der grosse Vorrat
+             * verhinderte Aussetzer, war aber zugleich eine dauerhafte
+             * Verzoegerung des Tons gegenueber Bild und Tastendruck. Gegen
+             * Aussetzer hilft jetzt der begrenzte Rueckstau im Ring.
+             */
             var wait = 0
-            while (sndRun && EmuNative.audioAvail() < sr / 7 && wait < 60) {
-                Thread.sleep(20); wait++
+            while (sndRun && EmuNative.audioAvail() < sr / 25 && wait < 40) {
+                Thread.sleep(5); wait++
             }
             track.play()
             val buf = ShortArray(blk)
